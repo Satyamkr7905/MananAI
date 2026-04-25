@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { GoogleLogin } from "@react-oauth/google";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -9,6 +9,18 @@ import AuthShell from "@/components/AuthShell";
 import Loader from "@/components/Loader";
 import { useAuth } from "@/hooks/useAuth";
 import { isRealBackendConfigured } from "@/services/api";
+
+// Lazy-load the Google Identity Services button so its ~20KB chunk (and the
+// remote gsi/client script) only load when the user actually needs it.
+const GoogleLogin = dynamic(
+  () => import("@react-oauth/google").then((m) => m.GoogleLogin),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-10 w-[260px] rounded-md bg-slate-100 animate-pulse" />
+    ),
+  },
+);
 
 export default function Login() {
   const router = useRouter();

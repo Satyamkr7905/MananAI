@@ -1,23 +1,32 @@
+import dynamic from "next/dynamic";
 import { BarChart3, PieChart as PieIcon, TrendingUp } from "lucide-react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend as ReLegend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 
 import AppLayout from "@/components/AppLayout";
-import Graph from "@/components/Graph";
-import PieChart from "@/components/PieChart";
 import Loader from "@/components/Loader";
 import EmptyState from "@/components/EmptyState";
 import { useApi } from "@/hooks/useApi";
 import { getAnalytics } from "@/services/api";
 import { ERROR_LABELS } from "@/utils/constants";
+
+// Recharts is ~150KB. All three chart pieces are lazy-loaded so the
+// analytics page HTML and stat panels paint before the chart bundle.
+const chartFallback = (
+  <div className="h-64 grid place-items-center">
+    <Loader size="sm" label="Loading chart…" />
+  </div>
+);
+const Graph = dynamic(() => import("@/components/Graph"), {
+  ssr: false,
+  loading: () => chartFallback,
+});
+const PieChart = dynamic(() => import("@/components/PieChart"), {
+  ssr: false,
+  loading: () => chartFallback,
+});
+const WeeklyBarChart = dynamic(() => import("@/components/WeeklyBarChart"), {
+  ssr: false,
+  loading: () => chartFallback,
+});
 
 export default function Analytics() {
   const { data, loading } = useApi(getAnalytics);
@@ -96,27 +105,7 @@ export default function Analytics() {
               </div>
               <BarChart3 className="h-5 w-5 text-slate-400" />
             </div>
-            <div className="h-64">
-              <ResponsiveContainer>
-                <BarChart data={weekly} margin={{ top: 10, right: 8, left: -12, bottom: 0 }}>
-                  <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="day" stroke="#94a3b8" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} width={36} />
-                  <Tooltip
-                    cursor={{ fill: "#f1f5f9" }}
-                    contentStyle={{
-                      borderRadius: 12,
-                      border: "1px solid #e2e8f0",
-                      fontSize: 12,
-                      boxShadow: "0 4px 20px rgba(15,23,42,0.08)",
-                    }}
-                    formatter={(v, name) => (name === "solved" ? [v, "Solved"] : [`${Math.round(v * 100)}%`, "Accuracy"])}
-                  />
-                  <ReLegend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-                  <Bar dataKey="solved" fill="#6366f1" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <WeeklyBarChart data={weekly} />
           </div>
 
           <div className="card p-5">
