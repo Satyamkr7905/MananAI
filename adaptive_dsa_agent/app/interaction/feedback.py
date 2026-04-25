@@ -23,42 +23,54 @@ class FeedbackComposer:
 
     def on_correct(self, question: dict[str, Any], hints_used: int, elapsed: float,
                    score: float = 1.0) -> str:
+        """Celebrate the win, acknowledge any rough edges without nagging."""
         budget = question.get("time_budget_seconds") or 0
-        parts = ["Correct!"]
-        if score < 0.9:
-            parts.append(f"(score {score:.0%} — just over the line)")
-        if hints_used == 0:
-            parts.append("Nailed it with no hints.")
-        elif hints_used == 1:
-            parts.append("One hint was all you needed — nice recovery.")
+        if score >= 0.85:
+            parts = ["Correct!"]
         else:
-            parts.append(f"Got there after {hints_used} hints — progress!")
+            parts = ["Nice — you got the main idea."]
+
+        if hints_used == 0:
+            parts.append("No hints needed.")
+        elif hints_used == 1:
+            parts.append("One hint was all it took.")
+        else:
+            parts.append(f"Got there after {hints_used} hints — keep going.")
+
         if budget and elapsed <= budget:
-            parts.append(f"Finished in {int(elapsed)}s (budget {budget}s).")
+            parts.append(f"Finished in {int(elapsed)}s.")
         elif budget:
-            parts.append(
-                f"Took {int(elapsed)}s vs. a {budget}s budget — try to tighten your approach."
-            )
+            parts.append(f"Took {int(elapsed)}s — a touch over budget.")
         return " ".join(parts)
 
     def on_wrong(self, error_type: str | None, attempts_on_question: int,
                  score: float = 0.0, missed: list[str] | None = None) -> str:
-        if score >= 0.4:
+        """Kinder on-wrong message — never shame, always point forward."""
+        if score >= 0.35:
             lead = {
-                1: f"So close ({score:.0%}) — let's sharpen it.",
-                2: f"Still a little off ({score:.0%}) — closer this time.",
-                3: f"Three tries at {score:.0%}. Time to walk through the solution.",
-            }.get(attempts_on_question, "Let's take another look.")
+                1: "Nearly there — one more piece and you've got it.",
+                2: "Still close. Let's sharpen one detail.",
+                3: "Getting warmer. Let's walk through the full idea.",
+            }.get(attempts_on_question, "Let's fine-tune this.")
         else:
             lead = {
-                1: "Not quite — but you're on the hook now.",
-                2: "Still off. Let's go deeper.",
-                3: "Three misses — time to see the full solution.",
-            }.get(attempts_on_question, "Let's take another look.")
-        if error_type and error_type not in ("unknown", "logic", None):
-            lead += f" Smells like a **{error_type.replace('_', ' ')}** issue."
+                1: "Not quite — but the first try rarely nails it.",
+                2: "Let's try a different angle.",
+                3: "Three goes in — time to see the worked solution.",
+            }.get(attempts_on_question, "Let's look again together.")
+
+        watch_out = {
+            "off_by_one":           " Watch your loop bounds on this one.",
+            "base_case_issue":      " Pin down the smallest input first.",
+            "time_complexity_issue": " A nested-loop solution works but is slow — look for a one-pass idea.",
+            "state_definition":     " Describe in plain English what each dp cell stores before coding.",
+        }
+        if error_type in watch_out:
+            lead += watch_out[error_type]
+
         if missed:
-            lead += f" Your answer didn't touch: {', '.join(missed[:2])}."
+            miss = missed[0]
+            lead += f" Missing from your answer: {miss}."
         return lead
 
     # ---------------- summaries ----------------

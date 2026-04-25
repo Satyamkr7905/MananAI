@@ -1,32 +1,34 @@
 """
 Evaluator — decides how correct a free-text answer is.
 
-v2 upgrades
------------
-* **Partial-credit scoring**: returns a float ``score`` in ``[0, 1]`` alongside
-  the legacy ``correct`` boolean. The decision engine uses ``score`` to pick a
-  smarter hint level ("you're close, here's a targeted nudge" vs. "back to
-  basics").
-* **Multi-approach support**: a question can declare alternative
-  ``approaches`` (e.g. Two Sum via hash map OR sort+two-pointer). We compute
-  a score per approach and take the best — so the learner isn't punished for
-  choosing a different valid technique.
-* **Weighted keywords**: ``core_keywords`` are mandatory and weigh 2.0;
-  ``expected_keywords`` are supporting and weigh 1.0.
-* **Token-aware matching**: words are extracted after light normalization,
-  so ``"Two-pointer"`` matches ``"two pointer"``.
-* **Smarter error_type inference**: looks at *how* the answer went wrong
-  (brute-force markers, recursion markers, etc).
+v3 upgrades (gentler, smarter matching)
+---------------------------------------
+* **Synonym-aware matching**: "dictionary", "dict", "hashmap", "hash table"
+  all count as "hash map". "maximum" / "biggest" / "largest" count as "max".
+  This means the learner isn't punished for saying the same thing in a
+  different way.
+* **Friendlier threshold**: the correct bar is now **0.55** (down from 0.65).
+  So an answer that covers most of the idea — "a little here and there" —
+  is accepted; we just quietly highlight what's missing.
+* **Kinder notes**: "Right idea — just tighten X" replaces the clinical
+  "45% match to approach 'default'".
 
-Output shape (backward-compatible + new fields):
+Kept from v2
+------------
+* Partial-credit ``score`` float in ``[0, 1]``.
+* Multi-approach support (pick the approach that fits the answer best).
+* Weighted ``core_keywords`` (2.0) vs ``expected_keywords`` (1.0).
+* Error-type inference from give-up patterns, brute-force markers, etc.
+
+Output shape (unchanged — backward-compatible):
 
     {
       "correct":    bool,       # True iff score >= correct_threshold
       "score":      float,      # 0..1 partial credit
-      "error_type": str | None, # off_by_one | base_case_issue | time_complexity_issue | logic | unknown | null
+      "error_type": str | None,
       "matched":    [str],      # keywords/phrases found in the answer
       "missed":     [str],      # keywords expected but absent
-      "approach":   str | None, # which approach fit best, if multi-approach question
+      "approach":   str | None,
       "notes":      str,
     }
 """
@@ -37,8 +39,8 @@ import re
 from typing import Any, Iterable
 
 
-CORRECT_THRESHOLD = 0.65   # score ≥ this → "correct"
-CLOSE_THRESHOLD = 0.40     # score ≥ this → "close" (hint more targeted)
+CORRECT_THRESHOLD = 0.55   # score ≥ this → "correct" (was 0.65)
+CLOSE_THRESHOLD = 0.35     # score ≥ this → "nearly there"
 
 
 _GIVE_UP_PATTERNS = (
@@ -57,6 +59,58 @@ _ERROR_SIGNATURES: list[tuple[str, str]] = [
     (r"\b(null|none\s*type|undefined)\b", "logic"),
 ]
 
+# Synonym groups. Each set is treated as "one concept" for matching.
+# If a keyword (or any alias in the same group) appears in the answer, the
+# keyword is considered matched. Keep entries literal — the matcher
+# normalises to alphanumerics+spaces before comparing, so "hash-map",
+# "hash map", and "hashmap" all end up the same string.
+_SYNONYM_GROUPS: tuple[frozenset[str], ...] = (
+    frozenset({
+        "hash", "hash map", "hashmap", "hash table", "hashtable",
+        "dict", "dictionary", "map", "lookup table", "lookup",
+    }),
+    frozenset({
+        "two pointer", "two pointers", "2 pointer", "2 pointers",
+        "left right pointer", "left and right pointer",
+    }),
+    frozenset({"sliding window", "window"}),
+    frozenset({
+        "dp", "dynamic programming", "tabulation", "bottom up", "bottom-up",
+    }),
+    frozenset({"memo", "memoization", "memoize", "cache", "cached"}),
+    frozenset({"recursion", "recursive", "recurse"}),
+    frozenset({
+        "loop", "iterate", "iteration", "iterating",
+        "for loop", "while loop", "running", "running through",
+    }),
+    frozenset({"sum", "total", "accumulator", "running total"}),
+    frozenset({"add", "plus", "increment"}),
+    frozenset({"max", "maximum", "largest", "biggest", "greatest", "highest"}),
+    frozenset({"min", "minimum", "smallest", "lowest"}),
+    frozenset({"sort", "sorted", "sorting", "order", "ordered"}),
+    frozenset({"swap", "exchange", "switch"}),
+    frozenset({
+        "complement", "difference", "target minus", "needed value",
+        "pair sum", "remaining", "other number",
+    }),
+    frozenset({"stack", "lifo", "last in first out"}),
+    frozenset({"queue", "fifo", "first in first out"}),
+    frozenset({"bfs", "breadth first", "breadth-first", "level order"}),
+    frozenset({"dfs", "depth first", "depth-first"}),
+    frozenset({"linked list", "linked-list", "linkedlist", "linked nodes"}),
+    frozenset({"binary search", "halve", "halving", "midpoint"}),
+    frozenset({"base case", "base cases", "initial case", "stopping condition", "starting case"}),
+    frozenset({"kadane", "best ending here", "current sum", "running sum"}),
+    frozenset({
+        "tree", "binary tree", "bst", "root", "leaf",
+    }),
+    frozenset({"graph", "adjacency", "vertices", "edges", "nodes and edges"}),
+    frozenset({
+        "seen", "visited", "already seen", "previously seen", "previous",
+    }),
+)
+
+
 _WORD_NORMALIZE = re.compile(r"[^a-z0-9]+")
 
 
@@ -64,11 +118,43 @@ def _normalize(text: str) -> str:
     return _WORD_NORMALIZE.sub(" ", text.lower()).strip()
 
 
+def _aliases_of(keyword: str) -> set[str]:
+    """Return all accepted spellings for a keyword (itself + synonym set).
+
+    Uses normalised forms so callers can pass "hash-map" or "Hash Map" and
+    still land in the right group.
+    """
+    norm = _normalize(keyword)
+    if not norm:
+        return set()
+    for group in _SYNONYM_GROUPS:
+        normalized = {_normalize(w) for w in group}
+        if norm in normalized:
+            return {a for a in normalized if a}
+    return {norm}
+
+
 def _contains(haystack: str, needle: str) -> bool:
-    """Case-insensitive, whitespace-tolerant substring search."""
+    """Case-insensitive, whitespace-tolerant, synonym-aware substring search."""
     h = _normalize(haystack)
-    n = _normalize(needle)
-    return bool(n) and n in h
+    if not h:
+        return False
+    for alias in _aliases_of(needle):
+        if alias and alias in h:
+            return True
+    return False
+
+
+def _dedupe_preserve_order(items: list[str]) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for item in items:
+        key = _normalize(item)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(item)
+    return out
 
 
 class Evaluator:
@@ -86,15 +172,18 @@ class Evaluator:
         answer = (user_answer or "").strip()
 
         if not answer:
-            return self._make_result(0.0, None, "Empty answer.", [], [])
+            return self._make_result(0.0, None, "Nothing submitted yet.", [], [])
         if any(re.search(p, answer.lower()) for p in _GIVE_UP_PATTERNS):
-            return self._make_result(0.0, "unknown", "Learner gave up.", [], [])
+            return self._make_result(
+                0.0, "unknown",
+                "No worries — grab a hint and we'll work through it together.",
+                [], [],
+            )
 
-        # Build the set of scoring approaches.
         approaches = self._resolve_approaches(question)
 
         best_score = 0.0
-        best = None
+        best: dict[str, Any] | None = None
         best_matched: list[str] = []
         best_missed: list[str] = []
 
@@ -110,33 +199,54 @@ class Evaluator:
             return self._make_result(
                 best_score,
                 None,
-                f"Matched approach '{best['name']}' ({best_score:.0%}).",
+                self._correct_note(best_score, best_missed),
                 best_matched,
                 best_missed,
-                approach=best["name"],
+                approach=best["name"] if best else None,
                 correct=True,
             )
 
         error_type = self._infer_error_type(answer.lower(), question, best_score)
-        band = "close" if best_score >= self.close_threshold else "off-track"
         return self._make_result(
             best_score,
             error_type,
-            f"{band.capitalize()} — {best_score:.0%} match to approach '{best['name'] if best else 'default'}'.",
+            self._wrong_note(best_score, best_missed),
             best_matched,
             best_missed,
             approach=best["name"] if best else None,
             correct=False,
         )
 
+    # ------------------------------------------------------------------ notes
+
+    @staticmethod
+    def _correct_note(score: float, missed: list[str]) -> str:
+        if score >= 0.85:
+            return "Solid — you hit the core ideas."
+        if missed:
+            return (
+                f"Right idea! Just a little tightening — consider "
+                f"mentioning {missed[0]}."
+            )
+        return "Right idea! A couple of small details would round it out."
+
+    @staticmethod
+    def _wrong_note(score: float, missed: list[str]) -> str:
+        if score >= 0.35:
+            if missed:
+                return (
+                    f"Almost there — you're missing the piece about "
+                    f"**{missed[0]}**. Add that and you're golden."
+                )
+            return "Almost there — add one more detail and it clicks."
+        if score > 0.0:
+            return "You've got part of it. Try naming the main technique first."
+        return "Let's step back and name the pattern — then the details follow."
+
     # ------------------------------------------------------------------ approach resolution
 
     def _resolve_approaches(self, question: dict[str, Any]) -> list[dict[str, Any]]:
-        """Return normalized list of approaches for this question.
-
-        A question may declare multiple ``approaches``; if not, we synthesize a
-        single ``default`` approach from ``expected_keywords`` + ``core_keywords``.
-        """
+        """Return normalized list of approaches for this question."""
         declared = question.get("approaches") or []
         if declared:
             return [
@@ -189,9 +299,15 @@ class Evaluator:
 
         score = earned / denom
 
-        # Core-keyword enforcement: missing ALL core concepts caps score at 0.45.
+        # Core-keyword enforcement: missing ALL core concepts caps score at 0.45,
+        # so a purely support-keyword answer never crosses the correct threshold.
         if core and not any(_contains(answer, kw) for kw in core):
             score = min(score, 0.45)
+
+        # Dedupe while preserving order — authors sometimes list the same word
+        # in both `core` and `keywords`, and we don't want the UI showing it twice.
+        matched = _dedupe_preserve_order(matched)
+        missed = _dedupe_preserve_order(missed)
 
         return score, matched, missed
 
@@ -202,7 +318,7 @@ class Evaluator:
             if re.search(pattern, answer_lower):
                 return etype
         # Use question tags as a secondary hint — but only if the answer is
-        # genuinely off-track, not "close".
+        # genuinely off-track, not "nearly there".
         pitfalls = {"off_by_one", "base_case_issue", "time_complexity_issue", "state_definition"}
         for tag in question.get("tags") or []:
             if tag in pitfalls:

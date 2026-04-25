@@ -1,17 +1,17 @@
 """
 Hint generator — LLM (Gemini) with a strong offline fallback.
 
-v2 upgrades
------------
-* **Gap analysis** drives hint content: the evaluator tells us which concepts
-  were present vs. missing in the answer, so the hint can reference them
-  specifically ("You've got the loop right — what's missing is the complement
-  lookup"). Both the LLM and the offline path consume this.
-* **Socratic L1**: a single question, not a statement, to get the learner
-  thinking. Different for "you're close" vs "you're lost" vs "first-try miss".
-* **Targeted L2**: names the approach + the invariant/state — still no code.
-* **Scaffolded L3**: numbered algorithm, pulled from the question's reference
-  solution; still code-free.
+v3 upgrades (specific + simple)
+-------------------------------
+* **References this problem** — hints quote the question title and a short
+  summary of the task, so the learner sees advice tailored to the thing
+  they're actually looking at, not generic pattern-speak.
+* **Plain English** — "invariant" → "the rule that stays true each loop";
+  "recurrence" → "the formula for dp[i] in terms of smaller i".
+* **Layered**:
+    L1 = one short, specific Socratic question.
+    L2 = name the technique in plain words and point at the single missing piece.
+    L3 = 3-5 numbered steps pulled from the reference solution.
 * Graceful degradation: if Gemini errors or returns empty, the offline path
   produces a perfectly usable hint.
 """
@@ -145,7 +145,8 @@ class HintGenerator:
             return (
                 "Question: {title}\nDescription: {description}\nLearner answer: {user_answer}\n"
                 "Matched: {matched}\nMissed: {missed}\nWeaknesses: {weaknesses}\nLevel: {level}\n"
-                "Produce a level-{level} tutoring hint without revealing the solution."
+                "Produce a level-{level} tutoring hint in plain English, specific to the "
+                "problem above. Do NOT reveal the full solution at levels 1 or 2."
             )
 
     # ------------------------------------------------------------------ offline path
@@ -160,115 +161,178 @@ class HintGenerator:
             return self._offline_l2(ctx, technique)
         return self._offline_l3(ctx)
 
-    # ---- L1: Socratic, differentiated by how-close-they-are ----
+    # ---- L1: one specific, plain-English Socratic question ----
 
     def _offline_l1(self, ctx: HintContext, technique: tuple[str, str]) -> str:
-        # Praise what they got right, then ask ONE question.
-        got_right = ""
-        if ctx.matched:
-            got_right = f"Good — you've already reached for {', '.join(ctx.matched[:2])}. "
+        title = ctx.question.get("title") or "this problem"
 
-        if ctx.score >= 0.4:
-            nudge = (
-                f"{got_right}You're close. What's the *invariant* that should hold "
-                "between iterations? Write it in one sentence before coding."
-            )
+        # Acknowledge what they got right (keeps momentum).
+        praise = ""
+        if ctx.matched:
+            praise = f"You've got {_friendly_join(ctx.matched[:2])} — good start. "
+
+        if ctx.score >= self._close():
+            # Close: point at the single missing piece in plain words.
+            if ctx.missed:
+                nudge = (
+                    f"{praise}For \"{title}\", what role does **{ctx.missed[0]}** play? "
+                    f"Adding that usually closes the gap."
+                )
+            else:
+                nudge = (
+                    f"{praise}For \"{title}\", can you say in one sentence "
+                    f"what stays true after every step of your approach?"
+                )
         elif ctx.score < 0.15 and ctx.user_answer:
+            # Off-track: zoom out to the pattern.
             nudge = (
-                f"Let's zoom out. {technique[0].capitalize()}? "
-                "Try to name the algorithmic pattern before writing anything."
+                f"Let's zoom out on \"{title}\". {technique[0].capitalize()}? "
+                f"Name the pattern first — code comes after."
             )
         else:
-            nudge = f"{got_right}{technique[0].capitalize()}?"
+            # Somewhere in between, or no answer yet.
+            nudge = f"{praise}{technique[0].capitalize()}"
+            if not nudge.endswith("?"):
+                nudge += "?"
 
-        if ctx.weaknesses:
-            nudge += f" (You've slipped on `{ctx.weaknesses[0]}` recently — keep it in mind here.)"
+        if ctx.weaknesses and ctx.weaknesses[0] in _WEAKNESS_NUDGES:
+            nudge += " " + _WEAKNESS_NUDGES[ctx.weaknesses[0]]
         return nudge
 
-    # ---- L2: targeted — name the approach, identify the gap ----
+    # ---- L2: name the technique in plain words, one missing piece ----
 
     def _offline_l2(self, ctx: HintContext, technique: tuple[str, str]) -> str:
-        approach_line = f"Try this approach: {technique[1]}."
-        gap_line = ""
-        if ctx.missed:
-            gap_line = (
-                f" Your answer hasn't addressed {ctx.missed[0]}"
-                + (f" and {ctx.missed[1]}" if len(ctx.missed) > 1 else "")
-                + " — think about where that fits."
-            )
-        invariant_line = (
-            " Before coding, write the loop invariant or DP state in plain English — "
-            "that alone usually unblocks the tricky case."
-        )
-        if ctx.weaknesses and ctx.weaknesses[0] == "off_by_one":
-            invariant_line = (
-                " Walk a size-3 example on paper first to catch the off-by-one in your bounds."
-            )
-        return approach_line + gap_line + invariant_line
+        title = ctx.question.get("title") or "this problem"
+        lines: list[str] = [f"Try this for \"{title}\": {technique[1]}."]
 
-    # ---- L3: numbered algorithm, no code ----
+        if ctx.missed:
+            piece = ctx.missed[0]
+            lines.append(
+                f"Your answer hasn't covered **{piece}** — that's the piece that "
+                f"makes the whole thing work. Where does it fit in your plan?"
+            )
+        else:
+            lines.append(
+                "Write your plan in one sentence before coding — that alone usually "
+                "unblocks the tricky case."
+            )
+
+        if ctx.weaknesses and ctx.weaknesses[0] == "off_by_one":
+            lines.append(
+                "Tip: walk through a 3-element example on paper to catch any "
+                "off-by-one in your bounds."
+            )
+        return " ".join(lines)
+
+    # ---- L3: numbered steps, no code ----
 
     def _offline_l3(self, ctx: HintContext) -> str:
         steps = _split_solution_into_steps(ctx.question.get("solution") or "")
         numbered = "\n".join(f"  {i+1}. {s}" for i, s in enumerate(steps))
         return (
-            "Here's the full approach (try to implement it yourself):\n"
+            "Here's the full approach — try to implement it yourself:\n"
             f"{numbered}\n"
-            "If you're still stuck after this, ask to see the solution."
+            "If you're still stuck after this, ask to see the worked solution."
         )
+
+    def _close(self) -> float:
+        # Keep in sync with Evaluator.CLOSE_THRESHOLD without hard-coupling.
+        try:
+            from .evaluator import CLOSE_THRESHOLD
+            return float(CLOSE_THRESHOLD)
+        except Exception:
+            return 0.35
 
 
 # ---------------------------------------------------------------------------
 # small pure helpers
 # ---------------------------------------------------------------------------
 
+# Plain-English technique hints — (L1 Socratic question, L2 approach blurb).
+# Rule: no jargon unless we define it in the same sentence.
 _TECHNIQUE_HINTS: dict[str, tuple[str, str]] = {
     "two_pointer": (
-        "think about two indices moving toward (or with) each other",
-        "use two pointers and move them based on a comparison invariant",
+        "could two markers (one at each end, or one trailing the other) help you scan this in a single pass",
+        "use two pointers — one at each end (or one trailing the other) — and decide which one to move based on the values they point at",
     ),
     "sliding_window": (
-        "think about maintaining a window of valid elements as you scan",
-        "expand the right edge; contract the left edge whenever the window becomes invalid",
+        "can you keep a window of valid items and slide it across the input",
+        "keep a window that grows on the right; whenever it breaks the rule, shrink it from the left",
     ),
     "hash_map": (
-        "think about what you'd want to look up in O(1) as you scan",
-        "keep previously-seen values (or their complements) in a hash map for O(1) queries",
+        "what would you want to look up in one step while scanning the list",
+        "as you scan, store what you've seen in a hash map (a dictionary) so you can look up the partner value in O(1)",
     ),
     "1d_dp": (
-        "can the answer at index i be built from smaller indices?",
-        "define dp[i] explicitly in words, then derive it from dp[i-1] and/or dp[i-2]",
+        "can the answer at position i be built from the answers at smaller positions",
+        "define dp[i] in plain English ('the best answer up to index i'), then write the formula using dp[i-1] (and maybe dp[i-2])",
     ),
     "2d_dp": (
-        "do two indices (i, j) together describe a subproblem?",
-        "define dp[i][j] precisely, then derive it from smaller (i, j) states",
+        "do two indices (i, j) together describe a sub-problem that's easier than the full input",
+        "define dp[i][j] in one sentence, then build it from smaller (i, j) cells",
     ),
     "base_case": (
-        "what is the smallest possible input supposed to return?",
-        "pin down the base cases first (n=0, n=1), then the recurrence",
+        "what is the smallest possible input supposed to return",
+        "pin down the base cases first (n = 0, n = 1), then write the rule that builds bigger answers from them",
     ),
     "kadane": (
-        "what's the best subarray *ending* exactly at each index?",
-        "track current-best-ending-here and overall-best in a single pass",
+        "what's the best contiguous sum that *ends exactly at* the current index",
+        "keep two running numbers: best-ending-here and best-overall, updating both in one pass",
     ),
     "off_by_one": (
-        "walk through length 0, 1, 2 inputs — do the bounds hold?",
-        "re-derive the loop bounds on paper with a 3-element example",
+        "what do the bounds look like when the input has length 0, 1, or 2",
+        "re-derive the loop bounds by hand on a 3-element example before trusting the code",
     ),
     "state_definition": (
-        "can you describe each dp cell in one sentence?",
-        "write a precise English definition of dp[i] / dp[i][j] before coding",
+        "can you describe each dp cell in one plain sentence",
+        "write a precise English definition of dp[i] or dp[i][j] first; the formula usually falls out",
     ),
     "binary_search": (
-        "is the search space monotonic in some predicate?",
-        "phrase the problem as 'find the smallest x such that P(x) is true' and binary-search on x",
+        "is there a predicate that flips from false to true exactly once across the input",
+        "phrase the task as 'find the smallest x such that P(x) is true' and binary-search on x",
+    ),
+    "prefix_sum": (
+        "if you knew the sum up to every index, could any range-sum be computed in one step",
+        "build a prefix-sum array; then range sums are prefix[r] - prefix[l-1]",
+    ),
+    "stack": (
+        "as you scan, do you need to remember the most recent unmatched item",
+        "push items onto a stack; pop when the current item closes / resolves the one on top",
+    ),
+    "queue": (
+        "do you process items in the order they arrived, FIFO",
+        "push new items to the back of a queue and pull from the front",
+    ),
+    "bfs": (
+        "could you explore nearest-first, one level at a time",
+        "use a queue and process nodes level by level, marking visited as you go",
+    ),
+    "dfs": (
+        "could you explore one branch as deep as possible, then backtrack",
+        "recurse (or use a stack) to go deep, marking visited and returning on dead ends",
+    ),
+    "greedy": (
+        "is there a locally-best choice that's also globally-best",
+        "make the locally-best choice at each step and prove it never paints you into a corner",
+    ),
+    "sorting": (
+        "would the problem become easy if the input were sorted first",
+        "sort first, then use the ordering to do a one-pass solution",
     ),
 }
 
 _GENERIC = (
-    "what algorithmic pattern does this problem most resemble?",
-    "sketch the approach in pseudocode first, pinning down the invariant or recurrence",
+    "what pattern does this problem most resemble — a scan, a lookup, a window, a sort",
+    "sketch the approach in one plain-English sentence before writing any code",
 )
+
+# Nudges added when the learner has a known weakness.
+_WEAKNESS_NUDGES: dict[str, str] = {
+    "off_by_one":           "(You've had off-by-one issues before — double-check your bounds here.)",
+    "base_case_issue":      "(Remember to sanity-check your base case — it's tripped you up before.)",
+    "time_complexity_issue": "(A nested-loop solution tends to tempt you — can this be one-pass?)",
+    "state_definition":     "(Describe what each dp cell means in plain words before writing the formula.)",
+}
 
 
 def _technique_phrase(tags: Iterable[str]) -> tuple[str, str]:
@@ -276,6 +340,18 @@ def _technique_phrase(tags: Iterable[str]) -> tuple[str, str]:
         if t in _TECHNIQUE_HINTS:
             return _TECHNIQUE_HINTS[t]
     return _GENERIC
+
+
+def _friendly_join(items: list[str]) -> str:
+    """Human-sounding join: 'loop and sum' instead of 'loop, sum'."""
+    items = [i for i in items if i]
+    if not items:
+        return ""
+    if len(items) == 1:
+        return items[0]
+    if len(items) == 2:
+        return f"{items[0]} and {items[1]}"
+    return ", ".join(items[:-1]) + f", and {items[-1]}"
 
 
 def _split_solution_into_steps(solution: str) -> list[str]:
