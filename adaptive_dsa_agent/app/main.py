@@ -1,23 +1,21 @@
-"""
-Adaptive DSA Tutor — CLI entry point.
-
-Main flow (unchanged from v1 at a high level, but each step is now richer):
-  1. Load user state         — now EMA-tracked, Leitner-scheduled, strength-aware
-  2. Select question         — ZPD scoring + scheduled reviews
-  3. Show "why this question"
-  4. Accept answer
-  5. Evaluate answer         — partial-credit score, multi-approach
-  6. Update memory           — weakness decay, strengths, Leitner boxes, EMAs
-  7. Decide next step        — score-aware, fatigue-aware, schedules reviews
-  8. Generate hint/feedback  — gap-analysis-driven
-  9. Save user state
-  10. Repeat
-
-Run with:
-    python -m app.main
-    python -m app.main --user alice
-    python -m app.main --topic dp
-"""
+# DSA By NOVA — CLI entry point.
+#
+# main flow:
+#  1. load user state
+#  2. select question (ZPD scoring + scheduled reviews)
+#  3. show "why this question"
+#  4. accept answer
+#  5. evaluate answer (partial credit, multi-approach)
+#  6. update memory (weakness decay, strengths, Leitner boxes, EMAs)
+#  7. decide next step
+#  8. generate hint/feedback
+#  9. save user state
+#  10. repeat
+#
+# run with:
+#   python -m app.main
+#   python -m app.main --user alice
+#   python -m app.main --topic dp
 
 from __future__ import annotations
 
@@ -47,7 +45,7 @@ log = get_logger(__name__)
 
 BANNER = r"""
 ========================================================
-          Adaptive DSA Tutor Agent  -  MVP v2
+                  DSA By NOVA  -  CLI
    Type 'help' for commands, 'quit' to save & exit
 ========================================================
 """
@@ -303,7 +301,7 @@ class TutorCLI:
 # ---------------------------------------------------------------------------
 
 def _parse_args(argv: list[str]) -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Adaptive DSA Tutor Agent (MVP v2)")
+    p = argparse.ArgumentParser(description="DSA By NOVA — CLI tutor")
     p.add_argument("--user", default="default", help="User id to load/save progress under.")
     p.add_argument("--topic", default=None, help="Start on this topic (e.g. 'arrays', 'dp').")
     return p.parse_args(argv)

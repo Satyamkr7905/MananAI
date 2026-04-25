@@ -1,6 +1,6 @@
-# Adaptive DSA Tutor — Frontend
+# DSA By NOVA — Frontend
 
-Next.js frontend for the Adaptive DSA Tutor. Talks to the FastAPI backend.
+Next.js frontend for **DSA By NOVA**. Talks to the FastAPI backend.
 
 **Stack**: Next.js 14 · React 18 · Tailwind CSS · Recharts · lucide-react · react-hot-toast
 

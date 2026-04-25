@@ -31,7 +31,7 @@ export default function Navbar({ onMenuClick }) {
               <Brain className="h-4.5 w-4.5" strokeWidth={2.25} />
             </div>
             <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Adaptive <span className="text-brand-600 dark:text-brand-400">DSA</span> Tutor
+              DSA By <span className="text-brand-600 dark:text-brand-400">NOVA</span>
             </span>
           </Link>
         </div>

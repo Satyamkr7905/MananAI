@@ -1,4 +1,4 @@
-# Adaptive DSA Tutor
+# DSA By NOVA
 
 A friendly AI coach that teaches **Data Structures and Algorithms** at your pace.
 

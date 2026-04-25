@@ -1,6 +1,6 @@
-# Adaptive DSA Tutor Agent (MVP)
+# DSA By NOVA — Backend (MVP)
 
-An intelligent, **decision-driven** tutor for Data Structures & Algorithms.
+The Python/FastAPI backend for **DSA By NOVA** — an intelligent, **decision-driven** tutor for Data Structures & Algorithms.
 
 Unlike a chatbot, this system:
 

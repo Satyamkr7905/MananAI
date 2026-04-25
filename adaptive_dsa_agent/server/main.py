@@ -26,7 +26,7 @@ async def lifespan(_app: FastAPI):
     yield
 
 
-app = FastAPI(title="Adaptive DSA Tutor API", lifespan=lifespan)
+app = FastAPI(title="DSA By NOVA API", lifespan=lifespan)
 
 _origins = cors_list()
 if not _origins:

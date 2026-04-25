@@ -28,7 +28,7 @@ _INSECURE_JWT_DEFAULTS: frozenset[str] = frozenset(
 
 def _default_postgres_url() -> str:
     # local dev default; override with DATABASE_URL in .env.
-    return "postgresql+psycopg://adaptive:adaptive@127.0.0.1:5432/adaptive_dsa_tutor"
+    return "postgresql+psycopg://nova:nova@127.0.0.1:5432/dsa_by_nova"
 
 
 class ApiSettings(BaseSettings):

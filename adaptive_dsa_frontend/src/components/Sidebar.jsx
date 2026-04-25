@@ -61,7 +61,7 @@ export default function Sidebar({ open = false, onClose }) {
         {items}
         <div className="mt-auto p-4">
           <div className="rounded-xl bg-brand-50 ring-1 ring-brand-100 p-4 dark:bg-brand-900/30 dark:ring-brand-800">
-            <div className="text-xs font-semibold text-brand-700 dark:text-brand-200">Adaptive mode</div>
+            <div className="text-xs font-semibold text-brand-700 dark:text-brand-200">NOVA mode</div>
             <p className="mt-1 text-[11px] leading-relaxed text-brand-700/80 dark:text-brand-200/80">
               The tutor picks questions in your learning zone and tracks every pattern.
             </p>

@@ -1,4 +1,4 @@
-# Runtime dependencies for the Adaptive DSA Tutor Agent.
+# Runtime dependencies for DSA By NOVA.
 # The Gemini dependency is OPTIONAL — the hint generator auto-falls-back to an
 # offline rule-based hinter if the package or API key is unavailable.
 

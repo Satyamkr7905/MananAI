@@ -1,30 +1,29 @@
-# Full stack: PostgreSQL + FastAPI (adaptive_dsa_agent) + Next.js (adaptive_dsa_frontend).
+# DSA By NOVA — full stack: PostgreSQL + FastAPI backend + Next.js frontend.
 #
-# Usage (from this directory):
+# usage (from this directory):
 #   docker compose up --build
 #
-# The API is published at http://localhost:8000. The app reads secrets from
+# API at http://localhost:8000. backend reads secrets from
 # adaptive_dsa_agent/.env — create it from .env.example if needed.
 # DATABASE_URL in that file is overridden here so the API uses the `db` service.
-# For the Next.js build, set GOOGLE_CLIENT_ID in a `.env` file next to this
-# file (or export) so NEXT_PUBLIC_GOOGLE_CLIENT_ID is embedded; same value as
-# GOOGLE_CLIENT_ID for the API.
+# for the Next.js build, set GOOGLE_CLIENT_ID in a `.env` file next to this
+# file (or export) so NEXT_PUBLIC_GOOGLE_CLIENT_ID gets baked in.
 
-name: adaptive-dsa
+name: dsa-by-nova
 
 services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: adaptive
-      POSTGRES_PASSWORD: adaptive
-      POSTGRES_DB: adaptive_dsa_tutor
+      POSTGRES_USER: nova
+      POSTGRES_PASSWORD: nova
+      POSTGRES_DB: dsa_by_nova
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U adaptive -d adaptive_dsa_tutor"]
+      test: ["CMD-SHELL", "pg_isready -U nova -d dsa_by_nova"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -37,8 +36,8 @@ services:
     env_file:
       - ./adaptive_dsa_agent/.env
     environment:
-      # Overrides host .env so the container talks to the compose network DB
-      DATABASE_URL: postgresql+psycopg://adaptive:adaptive@db:5432/adaptive_dsa_tutor
+      # override host .env so container talks to the compose network DB
+      DATABASE_URL: postgresql+psycopg://nova:nova@db:5432/dsa_by_nova
       CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000,http://web:3000"
     ports:
       - "8000:8000"

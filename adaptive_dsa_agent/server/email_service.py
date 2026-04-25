@@ -24,11 +24,11 @@ def send_otp_email(to_addr: str, code: str) -> None:
         raise SmtpNotConfiguredError("Set GMAIL_USER and GMAIL_APP_PASSWORD in adaptive_dsa_agent/.env")
 
     msg = EmailMessage()
-    msg["Subject"] = "Your Adaptive DSA Tutor sign-in code"
+    msg["Subject"] = "Your DSA By NOVA sign-in code"
     msg["From"] = user
     msg["To"] = to_addr
     msg.set_content(
-        f"Your one-time code is: {code}\n\n"
+        f"Your DSA By NOVA one-time code is: {code}\n\n"
         "It expires in a few minutes. If you didn't request this, ignore this email."
     )
 
