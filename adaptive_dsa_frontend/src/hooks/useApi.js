@@ -1,16 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-/**
- * useApi — minimal async data hook with automatic error toasts.
- *
- * Usage:
- *   const { data, loading, error, refetch } = useApi(getStats);
- *
- * Why not SWR/React Query? Because this app has ~4 endpoints and we'd rather
- * ship a small, readable hook than another dependency. If complexity grows
- * beyond this, swap this one file out for SWR.
- */
+// useApi — tiny async data hook that also toasts errors.
+// usage: const { data, loading, error, refetch } = useApi(getStats);
+// we don't pull in SWR/React-Query because this app only has a few
+// endpoints. if things grow, swap this one file out for SWR.
 export const useApi = (fn, { deps = [], skip = false, onSuccess } = {}) => {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);

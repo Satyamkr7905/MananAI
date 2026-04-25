@@ -8,9 +8,8 @@ import TopicCard from "@/components/TopicCard";
 import Highlight from "@/components/Highlight";
 import Loader from "@/components/Loader";
 import EmptyState from "@/components/EmptyState";
-import { useMemo } from "react";
 import { useApi } from "@/hooks/useApi";
-import { getStats, getUserImprovement, isRealBackendConfigured } from "@/services/api";
+import { getStats, getUserImprovement } from "@/services/api";
 import { useAuth } from "@/hooks/useAuth";
 import { num, pct } from "@/utils/formatters";
 
@@ -26,8 +25,7 @@ const Graph = dynamic(() => import("@/components/Graph"), {
 export default function Dashboard() {
   const { user } = useAuth();
   const { data, loading } = useApi(getStats);
-  const useServer = useMemo(() => isRealBackendConfigured(), []);
-  const { data: imp, loading: impLoading } = useApi(getUserImprovement, { skip: !useServer, deps: [useServer] });
+  const { data: imp, loading: impLoading } = useApi(getUserImprovement);
 
   const firstName = (user?.name || user?.email || "there").split(/\s|@/)[0];
 
@@ -82,7 +80,7 @@ export default function Dashboard() {
             />
           </div>
 
-          {isRealBackendConfigured() && (imp || impLoading) && (
+          {(imp || impLoading) && (
             <div className="card p-5">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>

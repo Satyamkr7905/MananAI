@@ -1,9 +1,6 @@
-/**
- * ProtectedRoute — wraps any page tree that requires an authenticated user.
- *
- * While `loading` we show a full-screen loader so the login page doesn't flash
- * on refresh. Once loaded, if there's no token we redirect to /login.
- */
+// ProtectedRoute — wrap any page tree that needs an authed user.
+// while `loading` we show a full-screen loader so the login page don't
+// flash on refresh. once loaded, no token -> redirect to /login.
 
 import { useEffect } from "react";
 import { useRouter } from "next/router";

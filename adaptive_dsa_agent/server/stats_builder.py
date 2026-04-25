@@ -1,4 +1,5 @@
-"""Build dashboard stats / analytics JSON from ``UserState`` (frontend shape)."""
+# Build dashboard stats / analytics JSON from a UserState in the shape the
+# frontend expects.
 
 from __future__ import annotations
 
@@ -159,8 +160,7 @@ def build_analytics(state: UserState) -> dict[str, Any]:
 
 
 def history_payload(state: UserState, bank_questions_by_id: dict[str, dict[str, Any]]) -> dict[str, Any]:
-    """Correct-only history rows + mastered IDs for the frontend History page."""
-
+    # correct-only history rows + mastered IDs for the History page.
     rows: list[dict[str, Any]] = []
     for i in range(len(state.history) - 1, -1, -1):
         h = state.history[i]

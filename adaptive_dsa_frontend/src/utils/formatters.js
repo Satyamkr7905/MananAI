@@ -1,7 +1,5 @@
-/**
- * Small, dependency-free formatters used across the UI.
- * Keeping them here means components never sprinkle `toFixed` or `new Date()` logic.
- */
+// tiny formatters used all over the UI. keeps toFixed / new Date() calls
+// out of component files.
 
 export const pct = (value, digits = 0) => {
   if (value == null || Number.isNaN(value)) return "--";

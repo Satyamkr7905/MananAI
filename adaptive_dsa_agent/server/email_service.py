@@ -1,4 +1,4 @@
-"""Send OTP email via Gmail SMTP (app password)."""
+# Send OTP email via Gmail SMTP using an App Password.
 
 from __future__ import annotations
 
@@ -11,12 +11,13 @@ from .settings import get_api_settings
 
 
 class SmtpNotConfiguredError(Exception):
-    """Raised when GMAIL_USER / GMAIL_APP_PASSWORD are missing."""
+    # raised when GMAIL_USER / GMAIL_APP_PASSWORD are empty.
+    pass
 
 
 def send_otp_email(to_addr: str, code: str) -> None:
     s = get_api_settings()
-    # Google app passwords are often copied with spaces; SMTP expects 16 chars without spaces.
+    # google app passwords often get copied with spaces; SMTP wants 16 chars, no spaces.
     app_pw = (s.gmail_app_password or "").replace(" ", "").strip()
     user = (s.gmail_user or "").strip()
     if not user or not app_pw:
@@ -53,7 +54,7 @@ def send_otp_email(to_addr: str, code: str) -> None:
             f"Details: {e!s}"
         ) from e
     except (OSError, SMTPException) as e:
-        # Timeouts, connection refused, TLS issues — surface a short message
+        # timeouts, connection refused, TLS issues — turn into a short message.
         raise RuntimeError(
             f"Could not reach Gmail SMTP at {host}:{port} within {timeout}s. "
             "If port 587 is blocked, try GMAIL_SMTP_PORT=465 in .env. "

@@ -3,14 +3,10 @@ import { pct } from "@/utils/formatters";
 import { cn } from "@/utils/cn";
 import ProgressBar from "./ProgressBar";
 
-/**
- * FeedbackBox — renders the evaluator's verdict after a submission.
- *
- * Accepts the rich v3 shape from the backend:
- *   { correct, score, error_type, matched, missed, notes }
- * The UI leans on partial credit so users see progress, not just pass/fail.
- * Tone is friendly — we never use "wrong" or "off-track".
- */
+// FeedbackBox — shows the evaluator's verdict after the user submits.
+// backend shape: { correct, score, error_type, matched, missed, notes }
+// we lean on partial credit so the user see progress, not just pass/fail,
+// and the tone is friendly — never "wrong" or "off-track".
 
 const ERROR_LABELS = {
   off_by_one: "watch your loop bounds",

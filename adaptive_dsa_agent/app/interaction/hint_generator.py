@@ -1,20 +1,7 @@
-"""
-Hint generator — LLM (Gemini) with a strong offline fallback.
-
-v3 upgrades (specific + simple)
--------------------------------
-* **References this problem** — hints quote the question title and a short
-  summary of the task, so the learner sees advice tailored to the thing
-  they're actually looking at, not generic pattern-speak.
-* **Plain English** — "invariant" → "the rule that stays true each loop";
-  "recurrence" → "the formula for dp[i] in terms of smaller i".
-* **Layered**:
-    L1 = one short, specific Socratic question.
-    L2 = name the technique in plain words and point at the single missing piece.
-    L3 = 3-5 numbered steps pulled from the reference solution.
-* Graceful degradation: if Gemini errors or returns empty, the offline path
-  produces a perfectly usable hint.
-"""
+# Hint generator — Gemini with an offline fallback.
+# hints always reference the problem title + use plain english.
+# L1 = one Socratic nudge, L2 = name technique + missing piece, L3 = numbered steps.
+# if Gemini fails or is off, offline path still gives a usable hint.
 
 from __future__ import annotations
 
@@ -29,7 +16,7 @@ log = get_logger(__name__)
 
 @dataclass
 class HintContext:
-    """Everything a hint generator needs, pre-analyzed."""
+    # all the stuff a hint needs, already pulled apart from the request.
     question: dict[str, Any]
     user_answer: str
     level: int
@@ -43,13 +30,11 @@ class HintContext:
 
 class HintGenerator:
     def __init__(self) -> None:
-        # Defer Gemini import + client setup until the first LLM hint — keeps
-        # CLI/API startup fast when hints are offline-only or unused.
+        # don't load gemini until first LLM hint — keeps CLI/API startup fast
+        # when hints are offline only.
         self._llm_model: Any | None = None
         self._llm_model_attempted = False
         self._prompt_template = self._load_template()
-
-    # ------------------------------------------------------------------ public
 
     def generate_hint(
         self,
@@ -61,7 +46,7 @@ class HintGenerator:
         evaluator_result: dict[str, Any] | None = None,
         strengths: Iterable[str] = (),
     ) -> str:
-        """Return a hint string. Falls back to offline path on any LLM error."""
+        # returns a hint string. any LLM failure drops to offline path.
         level = max(1, min(3, int(level)))
         ctx = HintContext(
             question=question,
@@ -91,7 +76,7 @@ class HintGenerator:
         self._llm_model = self._maybe_build_model()
         return self._llm_model
 
-    # ------------------------------------------------------------------ LLM path
+    # ---- LLM path ----
 
     def _llm_hint(self, ctx: HintContext, model: Any) -> str:
         q = ctx.question
@@ -149,7 +134,7 @@ class HintGenerator:
                 "problem above. Do NOT reveal the full solution at levels 1 or 2."
             )
 
-    # ------------------------------------------------------------------ offline path
+    # ---- offline path ----
 
     def _offline_hint(self, ctx: HintContext) -> str:
         tags = ctx.question.get("tags") or []
@@ -161,18 +146,17 @@ class HintGenerator:
             return self._offline_l2(ctx, technique)
         return self._offline_l3(ctx)
 
-    # ---- L1: one specific, plain-English Socratic question ----
-
+    # L1 — one specific, plain-English Socratic question.
     def _offline_l1(self, ctx: HintContext, technique: tuple[str, str]) -> str:
         title = ctx.question.get("title") or "this problem"
 
-        # Acknowledge what they got right (keeps momentum).
+        # praise what they already got so they don't feel restart from zero.
         praise = ""
         if ctx.matched:
             praise = f"You've got {_friendly_join(ctx.matched[:2])} — good start. "
 
         if ctx.score >= self._close():
-            # Close: point at the single missing piece in plain words.
+            # close enough — point at the one missing piece.
             if ctx.missed:
                 nudge = (
                     f"{praise}For \"{title}\", what role does **{ctx.missed[0]}** play? "
@@ -184,13 +168,13 @@ class HintGenerator:
                     f"what stays true after every step of your approach?"
                 )
         elif ctx.score < 0.15 and ctx.user_answer:
-            # Off-track: zoom out to the pattern.
+            # really off-track — zoom out to the pattern.
             nudge = (
                 f"Let's zoom out on \"{title}\". {technique[0].capitalize()}? "
                 f"Name the pattern first — code comes after."
             )
         else:
-            # Somewhere in between, or no answer yet.
+            # somewhere in between, or no answer yet.
             nudge = f"{praise}{technique[0].capitalize()}"
             if not nudge.endswith("?"):
                 nudge += "?"
@@ -199,8 +183,7 @@ class HintGenerator:
             nudge += " " + _WEAKNESS_NUDGES[ctx.weaknesses[0]]
         return nudge
 
-    # ---- L2: name the technique in plain words, one missing piece ----
-
+    # L2 — name the technique plainly, call out one missing piece.
     def _offline_l2(self, ctx: HintContext, technique: tuple[str, str]) -> str:
         title = ctx.question.get("title") or "this problem"
         lines: list[str] = [f"Try this for \"{title}\": {technique[1]}."]
@@ -224,8 +207,7 @@ class HintGenerator:
             )
         return " ".join(lines)
 
-    # ---- L3: numbered steps, no code ----
-
+    # L3 — numbered steps from the solution, no code.
     def _offline_l3(self, ctx: HintContext) -> str:
         steps = _split_solution_into_steps(ctx.question.get("solution") or "")
         numbered = "\n".join(f"  {i+1}. {s}" for i, s in enumerate(steps))
@@ -236,7 +218,7 @@ class HintGenerator:
         )
 
     def _close(self) -> float:
-        # Keep in sync with Evaluator.CLOSE_THRESHOLD without hard-coupling.
+        # stay in sync with Evaluator.CLOSE_THRESHOLD without importing at top.
         try:
             from .evaluator import CLOSE_THRESHOLD
             return float(CLOSE_THRESHOLD)
@@ -244,12 +226,10 @@ class HintGenerator:
             return 0.35
 
 
-# ---------------------------------------------------------------------------
-# small pure helpers
-# ---------------------------------------------------------------------------
+# ---- small pure helpers ----
 
-# Plain-English technique hints — (L1 Socratic question, L2 approach blurb).
-# Rule: no jargon unless we define it in the same sentence.
+# (L1 Socratic question, L2 approach blurb) per technique.
+# rule: no jargon unless the same sentence explains it.
 _TECHNIQUE_HINTS: dict[str, tuple[str, str]] = {
     "two_pointer": (
         "could two markers (one at each end, or one trailing the other) help you scan this in a single pass",
@@ -326,7 +306,7 @@ _GENERIC = (
     "sketch the approach in one plain-English sentence before writing any code",
 )
 
-# Nudges added when the learner has a known weakness.
+# tacked on when the learner has a known weakness.
 _WEAKNESS_NUDGES: dict[str, str] = {
     "off_by_one":           "(You've had off-by-one issues before — double-check your bounds here.)",
     "base_case_issue":      "(Remember to sanity-check your base case — it's tripped you up before.)",
@@ -343,7 +323,7 @@ def _technique_phrase(tags: Iterable[str]) -> tuple[str, str]:
 
 
 def _friendly_join(items: list[str]) -> str:
-    """Human-sounding join: 'loop and sum' instead of 'loop, sum'."""
+    # human-sounding: 'loop and sum' not 'loop, sum'.
     items = [i for i in items if i]
     if not items:
         return ""

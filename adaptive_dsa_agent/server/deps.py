@@ -1,4 +1,4 @@
-"""FastAPI dependencies: DB session and current user."""
+# FastAPI dependencies — DB session + current user from JWT.
 
 from __future__ import annotations
 

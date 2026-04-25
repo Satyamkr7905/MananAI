@@ -1,4 +1,4 @@
-"""ORM models: users, OTP rows, persisted tutor state."""
+# ORM models — users, OTP rows, persisted tutor state.
 
 from __future__ import annotations
 
@@ -25,9 +25,9 @@ class User(Base):
     name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     picture: Mapped[str | None] = mapped_column(Text, nullable=True)
     google_sub: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
-    # bcrypt hash. NULL for Google-only accounts or legacy OTP-only accounts.
+    # bcrypt hash. NULL for google-only or legacy OTP-only accounts.
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    # True once the email has been proven (OTP confirmed or Google verified).
+    # true once email is proven (OTP confirmed or Google verified).
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
@@ -56,7 +56,7 @@ class UserLearningState(Base):
 
 
 class UserBehaviorEvent(Base):
-    """Append-only log for learning analytics and improvement history."""
+    # append-only log for learning analytics and improvement history.
 
     __tablename__ = "user_behavior_events"
 

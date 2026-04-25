@@ -1,4 +1,4 @@
-"""Bridge HTTP layer to QuestionBank, selector, evaluator, hints, and StateManager."""
+# Bridges HTTP routes to QuestionBank, selector, evaluator, hints, StateManager.
 
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ def _solved_list(row: UserLearningState) -> list[str]:
 
 
 class TutorRuntime:
-    """Process-global bank + selector (read-only); hints are stateless per request."""
+    # process-global bank + selector (read-only). hints are stateless per request.
 
     def __init__(self) -> None:
         self.bank = QuestionBank()
@@ -213,7 +213,8 @@ _tutor: TutorRuntime | None = None
 
 
 def get_tutor() -> TutorRuntime:
-    """Lazy singleton — avoids loading ``questions.json`` + tutor stack at import (faster uvicorn start)."""
+    # lazy singleton — don't load questions.json + tutor stack at import time,
+    # keeps uvicorn cold-start fast.
     global _tutor
     if _tutor is None:
         _tutor = TutorRuntime()

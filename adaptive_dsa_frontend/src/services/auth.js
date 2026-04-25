@@ -1,9 +1,5 @@
-/**
- * Auth service — narrow wrapper around the token+user persistence concern.
- *
- * The UI never touches localStorage directly; it goes through here so the
- * storage keys are centralized and mocked easily in tests later.
- */
+// Auth session helper — thin wrapper over localStorage so the UI don't
+// touch storage keys directly. one place to change if keys move.
 
 import { STORAGE_KEYS } from "@/utils/constants";
 
@@ -29,10 +25,9 @@ export const clearSession = () => {
   window.localStorage.removeItem(STORAGE_KEYS.token);
   window.localStorage.removeItem(STORAGE_KEYS.user);
   window.localStorage.removeItem(STORAGE_KEYS.pendingEmail);
-  // Note: per-user progress keys (adt.progress.<uid>) intentionally NOT
-  // cleared here — sign-out should preserve history so the next login for the
-  // same user keeps their progress. Use `clearProgress()` from userProgress
-  // for an explicit wipe.
+  // note: per-user progress keys (adt.progress.<uid>) are kept on purpose —
+  // signing out shouldn't wipe history. use clearProgress() from
+  // userProgress.js if you actually want to wipe it.
 };
 
 export const setPendingEmail = (email) => {

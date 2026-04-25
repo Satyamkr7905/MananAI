@@ -1,28 +1,16 @@
-/**
- * userProgress — per-user local persistence of solved questions + history.
- *
- * In a real app, the backend owns this data. For the frontend-only MVP we
- * scope a tiny JSON document per user in localStorage so histories don't
- * leak between test accounts.
- *
- * Shape (per user):
- *   {
- *     solvedFirstTryNoHint: Set<qid>   -- never-repeat rule
- *     history: AttemptRecord[]         -- everything the user solved (correct)
- *   }
- *
- * AttemptRecord:
- *   { qid, title, topic, difficulty, score, hintsUsed,
- *     firstAttempt: bool, solvedAt: iso-string }
- *
- * Nothing outside this file should touch the storage directly.
- */
+// per-user progress snapshot in localStorage so histories don't leak between
+// test accounts. backend is the source of truth; we mirror it here so the
+// History and Practice pages don't flash empty on reload.
+//
+// per user shape:
+//   { solvedFirstTryNoHint: [qid], history: [AttemptRecord] }
+// AttemptRecord:
+//   { qid, title, topic, difficulty, score, hintsUsed, firstAttempt, solvedAt }
 
 import { loadSession } from "./auth";
-import { shouldUseMock } from "./api";
 import { STORAGE_KEYS } from "@/utils/constants";
 
-const PROGRESS_PREFIX = "adt.progress."; // full key is adt.progress.<userId>
+const PROGRESS_PREFIX = "adt.progress."; // final key is adt.progress.<userId>
 
 const isBrowser = () => typeof window !== "undefined";
 
@@ -37,7 +25,7 @@ const keyFor = (userId) => `${PROGRESS_PREFIX}${userId}`;
 
 const DEFAULT_PROGRESS = () => ({ solvedFirstTryNoHint: [], history: [] });
 
-// --------------------------------------------------------------------------- read
+// ---- read ----
 
 export const loadProgress = () => {
   if (!isBrowser()) return DEFAULT_PROGRESS();
@@ -58,19 +46,15 @@ export const getSolvedFirstTryIds = () => loadProgress().solvedFirstTryNoHint;
 
 export const getHistory = () => loadProgress().history;
 
-// --------------------------------------------------------------------------- write
+// ---- write ----
 
 const persist = (progress) => {
   if (!isBrowser()) return;
   window.localStorage.setItem(keyFor(currentUserId()), JSON.stringify(progress));
 };
 
-/**
- * Record a correct attempt. If it was first-attempt-no-hint, it joins the
- * never-repeat set too. A history row is always appended for correct answers.
- *
- * Returns the updated progress snapshot.
- */
+// save a correct attempt. if it was first-try-no-hint, also add it to the
+// never-repeat set. returns the updated snapshot.
 export const recordCorrectAttempt = ({
   question,
   score,
@@ -90,12 +74,12 @@ export const recordCorrectAttempt = ({
     firstAttempt: !!firstAttempt,
     solvedAt: new Date().toISOString(),
   };
-  progress.history.unshift(record);          // newest first
+  progress.history.unshift(record);
   if (progress.history.length > 500) {
-    progress.history.length = 500;           // cap to avoid runaway storage
+    progress.history.length = 500; // cap so storage don't grow forever
   }
 
-  // The never-repeat rule: first attempt AND zero hints.
+  // never-repeat rule: first try AND zero hints.
   if (firstAttempt && hintsUsed === 0 && !progress.solvedFirstTryNoHint.includes(question.id)) {
     progress.solvedFirstTryNoHint.push(question.id);
   }
@@ -104,19 +88,16 @@ export const recordCorrectAttempt = ({
   return progress;
 };
 
-/** Clear ALL progress for the current user. Exposed for a future "reset" button. */
+// wipe progress for the current user (reserved for a future reset button).
 export const clearProgress = () => {
   if (!isBrowser()) return;
   window.localStorage.removeItem(keyFor(currentUserId()));
 };
 
-/**
- * Overwrite local progress from the FastAPI ``GET /user/progress`` payload.
- * Call after login or on app load when a token exists so History / Practice
- * match server-side state.
- */
+// overwrite local progress from GET /user/progress so History / Practice
+// match the server after login or reload.
 export async function syncProgressFromServer() {
-  if (!isBrowser() || shouldUseMock()) return;
+  if (!isBrowser()) return;
   const token = window.localStorage.getItem(STORAGE_KEYS.token);
   if (!token) return;
   const ac = new AbortController();

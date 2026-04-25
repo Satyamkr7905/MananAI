@@ -1,7 +1,4 @@
-/**
- * Central tokens used across the UI — keep magic strings here so a single
- * edit ripples everywhere.
- */
+// shared tokens used across the UI — one place for magic strings.
 
 export const STORAGE_KEYS = {
   token: "adt.token",
@@ -9,14 +6,14 @@ export const STORAGE_KEYS = {
   pendingEmail: "adt.pendingEmail",
 };
 
-// Semantic color for error buckets. Charts and pills read from here.
+// colors for error buckets. charts + pills both read from here.
 export const ERROR_COLORS = {
-  off_by_one: "#f59e0b",           // amber
-  logic: "#ef4444",                // red
-  time_complexity_issue: "#6366f1", // indigo
-  base_case_issue: "#10b981",      // emerald
-  null_handling: "#64748b",        // slate
-  unknown: "#94a3b8",              // slate-400
+  off_by_one: "#f59e0b",
+  logic: "#ef4444",
+  time_complexity_issue: "#6366f1",
+  base_case_issue: "#10b981",
+  null_handling: "#64748b",
+  unknown: "#94a3b8",
 };
 
 export const ERROR_LABELS = {

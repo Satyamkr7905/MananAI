@@ -17,16 +17,11 @@ import {
   recordCorrectAttempt,
 } from "@/services/userProgress";
 
-/**
- * Practice page — with topic / difficulty filters and the never-repeat rule.
- *
- * Never-repeat rule
- * -----------------
- * A question becomes "mastered" when the user submits a correct answer on
- * their *first attempt* with *zero hints used*. Such IDs are persisted per
- * user in localStorage and excluded from future question rotations, so the
- * tutor never wastes their time on problems they've already crushed cleanly.
- */
+// Practice page — topic + difficulty filters and the never-repeat rule.
+// never-repeat: a correct answer on the first attempt with zero hints
+// marks the question "mastered", and we store that per-user in localStorage.
+// mastered IDs are excluded from future rotations so the tutor don't waste
+// your time on problems you've already nailed clean.
 export default function Practice() {
   // ---- filters ----
   const [topics, setTopics] = useState([]);
@@ -73,23 +68,22 @@ export default function Practice() {
         setQuestion(q);
       }
     } catch {
-      // useApi-style toasts are produced inside api.js on real-backend errors.
+      // api.js already toasts real-backend errors — nothing to do here.
     } finally {
       setLoadingQuestion(false);
     }
   }, [selectedTopic, selectedDifficulty]);
 
-  // initial topics load
   useEffect(() => {
     getTopics().then(setTopics).catch(() => setTopics([]));
   }, []);
 
-  // reload question whenever the filter changes
+  // reload question whenever the filters change.
   useEffect(() => {
     loadNextQuestion();
   }, [loadNextQuestion]);
 
-  // ------------------------------------------------------------------ submit
+  // ---- submit ----
 
   const onSubmit = async () => {
     if (!answer.trim() || !question) return;
@@ -142,7 +136,7 @@ export default function Practice() {
     }
   };
 
-  // ------------------------------------------------------------------ render
+  // ---- render ----
 
   const onClearFilters = () => {
     setSelectedTopic("all");

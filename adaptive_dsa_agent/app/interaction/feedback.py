@@ -1,13 +1,6 @@
-"""
-Feedback composer — user-facing messages.
-
-v2 upgrades
------------
-* ``on_correct`` / ``on_wrong`` speak in terms of the partial-credit score,
-  so a 50% attempt gets different language from a 10% attempt.
-* The progress dashboard now surfaces EMA accuracy, response time, strengths
-  and scheduled reviews — the richer memory from v2 is visible to the user.
-"""
+# Feedback composer — the user-facing strings.
+# messages scale with partial-credit score, so a 50% attempt reads
+# different from a 10% one.
 
 from __future__ import annotations
 
@@ -19,11 +12,11 @@ from ..user_model.user_state import UserState
 
 class FeedbackComposer:
 
-    # ---------------- per-attempt feedback ----------------
+    # ---- per-attempt feedback ----
 
     def on_correct(self, question: dict[str, Any], hints_used: int, elapsed: float,
                    score: float = 1.0) -> str:
-        """Celebrate the win, acknowledge any rough edges without nagging."""
+        # celebrate but acknowledge if it was rough, without nagging.
         budget = question.get("time_budget_seconds") or 0
         if score >= 0.85:
             parts = ["Correct!"]
@@ -45,7 +38,7 @@ class FeedbackComposer:
 
     def on_wrong(self, error_type: str | None, attempts_on_question: int,
                  score: float = 0.0, missed: list[str] | None = None) -> str:
-        """Kinder on-wrong message — never shame, always point forward."""
+        # kinder on-wrong — never shame, always point forward.
         if score >= 0.35:
             lead = {
                 1: "Nearly there — one more piece and you've got it.",
@@ -73,10 +66,10 @@ class FeedbackComposer:
             lead += f" Missing from your answer: {miss}."
         return lead
 
-    # ---------------- summaries ----------------
+    # ---- summaries ----
 
     def progress_summary(self, state: UserState) -> str:
-        """Richer text dashboard: levels, EMA, streaks, weaknesses, strengths, reviews."""
+        # text dashboard: levels, EMA acc, streaks, weak/strong, reviews.
         lines: list[str] = []
         lines.append("---------- Learning Progress ----------")
         if not state.topics:
@@ -130,8 +123,6 @@ class FeedbackComposer:
             "Solution outline:\n  "
             + question.get("solution", "(no solution text available)")
         )
-
-    # ---------------- internal ----------------
 
     @staticmethod
     def _level_bar(level: int) -> str:

@@ -1,4 +1,4 @@
-"""Authenticated tutor API — stats, questions, submit, hints, history."""
+# Tutor API (auth'd) — stats, questions, submit, hints, history.
 
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ def user_improvement(
     db: Session = Depends(get_session),
     limit: int = 100,
 ):
-    """Recent behaviour events and a compact improvement summary (server-backed accounts)."""
+    # recent behaviour events + a small summary for server-backed accounts.
     n = max(1, min(200, int(limit)))
     rows = (
         db.query(UserBehaviorEvent)
@@ -62,7 +62,7 @@ def user_improvement(
                 "payload": payload,
             }
         )
-    # Summary: accuracy over submit_answer events in this page
+    # summary: accuracy across the submit_answer events in this page.
     submits = [e for e in events if e["type"] == "submit_answer" and e.get("payload")]
     total = len(submits)
     correct_n = sum(1 for e in submits if e["payload"].get("correct") is True)

@@ -1,4 +1,4 @@
-"""Auth: OTP email, Google ID token, JWT issuance."""
+# Auth routes — OTP email, password signup/login, Google ID token, JWT issue.
 
 from __future__ import annotations
 
@@ -31,27 +31,26 @@ log = logging.getLogger(__name__)
 
 router = APIRouter(tags=["auth"])
 
-# In-process brute-force / abuse shields. These reset on restart, which is
-# acceptable for this app — a real deployment should additionally put a
-# rate-limiter (nginx, Cloudflare, slowapi, etc.) in front.
+# in-process brute-force / abuse shields. reset on restart — fine for this
+# app. real deploy should also have a proxy-level rate limiter (nginx, CF, slowapi).
 _VERIFY_ATTEMPTS: dict[str, int] = {}
 _SEND_HISTORY: dict[str, deque[float]] = {}
 _RATE_LOCK = threading.Lock()
 
 
 def _verify_attempts_key(email: str, code_hash: str) -> str:
-    # Bucket attempts to the specific outstanding OTP so a fresh /send-otp
-    # naturally clears the counter (the hash changes on every code).
+    # bucket attempts per OTP so a fresh /send-otp auto-clears the counter
+    # (hash changes on every new code).
     return f"{email}:{code_hash}"
 
 
 def _check_send_rate(email: str) -> None:
-    """Raise 429 if this email is sending OTPs too aggressively."""
+    # raise 429 if this email is asking for OTPs too fast.
     s = get_api_settings()
     now = time.time()
     with _RATE_LOCK:
         hist = _SEND_HISTORY.setdefault(email, deque())
-        # Drop entries older than 24h
+        # drop entries older than 24h.
         cutoff = now - 86400
         while hist and hist[0] < cutoff:
             hist.popleft()
@@ -108,16 +107,13 @@ def _issue(user: User) -> dict:
 
 
 def _as_utc(dt: datetime) -> datetime:
-    """Treat tz-naive datetimes as UTC. SQLite drops tzinfo on read."""
+    # sqlite drops tzinfo on read, so treat naive times as UTC.
     return dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else dt
 
 
 def _issue_otp(db: Session, email: str) -> tuple[str, str, str | None]:
-    """Create + persist a fresh OTP for ``email`` and try to deliver it.
-
-    Returns ``(message, delivery, dev_code_or_None)`` — callers embed the
-    three values into their HTTP response.
-    """
+    # make + save a fresh OTP for `email` and try to deliver it.
+    # returns (message, delivery, dev_code_or_None) for the caller to embed.
     settings_ = get_api_settings()
     code = generate_otp_digits()
     chash = hash_otp(email, code)
@@ -155,7 +151,7 @@ def _issue_otp(db: Session, email: str) -> tuple[str, str, str | None]:
 
 @router.post("/send-otp")
 def send_otp(body: SendOtpBody, db: Session = Depends(get_session)):
-    """Passwordless / account-recovery magic-link flow. Independent of /signup."""
+    # passwordless / account-recovery magic-link. separate from /signup.
     email = body.email.strip().lower()
     _check_send_rate(email)
     msg, delivery, dev_code = _issue_otp(db, email)
@@ -167,16 +163,14 @@ def send_otp(body: SendOtpBody, db: Session = Depends(get_session)):
 
 @router.post("/signup")
 def signup(body: SignupBody, db: Session = Depends(get_session)):
-    """Start an email+password account. Sends an OTP to prove email ownership.
-
-    - If the email is unknown → create an unverified user w/ password_hash, send OTP.
-    - If the email exists but is unverified → update the password_hash, resend OTP.
-    - If the email exists and IS verified → 409 (ask them to log in or reset).
-    """
+    # start an email+password account. sends an OTP to prove the email is real.
+    #  - unknown email -> create unverified user w/ password_hash, send OTP.
+    #  - exists but unverified -> update password_hash, resend OTP.
+    #  - exists and verified -> 409 (tell them to sign in or reset).
     email = body.email.strip().lower()
 
-    # Fast-path the "already signed up" case before rate-limiting so legitimate
-    # returning users get a clear "please sign in" instead of "too many requests".
+    # check "already signed up" BEFORE rate limiting so a returning user gets
+    # a proper "please sign in" instead of "too many requests".
     user = db.query(User).filter(User.email == email).first()
     if user and getattr(user, "email_verified", False) and user.password_hash:
         raise HTTPException(
@@ -211,7 +205,7 @@ def signup(body: SignupBody, db: Session = Depends(get_session)):
 
 @router.post("/signup/verify")
 def signup_verify(body: VerifyOtpBody, db: Session = Depends(get_session)):
-    """Complete signup: check the OTP, mark email_verified, issue JWT."""
+    # finish signup — check OTP, flip email_verified, issue JWT.
     email = body.email.strip().lower()
     code = (body.otp or "").strip()
 
@@ -247,7 +241,7 @@ def signup_verify(body: VerifyOtpBody, db: Session = Depends(get_session)):
 
     user = db.query(User).filter(User.email == email).first()
     if user is None:
-        # Edge case: signup row was wiped but OTP still present.
+        # edge case: signup row gone but OTP still hanging around.
         raise HTTPException(status_code=400, detail="Please start signup again.")
     user.email_verified = True
     db.add(user)
@@ -259,13 +253,13 @@ def signup_verify(body: VerifyOtpBody, db: Session = Depends(get_session)):
 
 @router.post("/login")
 def login(body: LoginBody, db: Session = Depends(get_session)):
-    """Password login. Only works for accounts that completed /signup/verify."""
+    # password login. only works for accounts that finished /signup/verify.
     email = body.email.strip().lower()
     user = db.query(User).filter(User.email == email).first()
 
-    # Uniform-latency failure: always run the bcrypt verify even when the user
-    # doesn't exist, so attackers can't distinguish "unknown email" from
-    # "wrong password" via timing.
+    # constant-ish latency: always run bcrypt verify even if user doesn't
+    # exist, so an attacker can't tell "unknown email" from "wrong password"
+    # by timing.
     stored = user.password_hash if user else None
     ok_password = verify_password(body.password, stored)
 
@@ -291,8 +285,8 @@ def verify_otp(body: VerifyOtpBody, db: Session = Depends(get_session)):
     email = body.email.strip().lower()
     code = (body.otp or "").strip()
 
-    # Defense in depth: numeric-only, fixed-length. An attacker who can send
-    # arbitrary bodies (e.g. long strings) shouldn't even reach the hash step.
+    # defense in depth — numeric only, bounded length. anyone sending junk
+    # bodies shouldn't even reach the hash step.
     if not code.isdigit() or not (4 <= len(code) <= 10):
         raise HTTPException(status_code=400, detail="Invalid OTP")
 
@@ -303,8 +297,8 @@ def verify_otp(body: VerifyOtpBody, db: Session = Depends(get_session)):
     settings_ = get_api_settings()
     attempts_key = _verify_attempts_key(email, row.code_hash)
 
-    # Invalidate the code after too many wrong tries (brute-force defense:
-    # 6-digit OTP = 10^6 values, so 5 attempts ≈ 5e-6 probability per code).
+    # kill the code after N wrong tries. 6-digit OTP = 10^6 values so 5
+    # tries ~ 5e-6 chance per code.
     with _RATE_LOCK:
         attempts = _VERIFY_ATTEMPTS.get(attempts_key, 0)
     if attempts >= settings_.otp_max_attempts:
@@ -323,7 +317,7 @@ def verify_otp(body: VerifyOtpBody, db: Session = Depends(get_session)):
             _VERIFY_ATTEMPTS[attempts_key] = attempts + 1
         raise HTTPException(status_code=401, detail="Invalid OTP")
 
-    # Success — consume the OTP and clear the attempt counter.
+    # success — burn the OTP and reset the counter.
     db.delete(row)
     db.commit()
     with _RATE_LOCK:
@@ -360,14 +354,13 @@ def auth_google(body: GoogleBody, db: Session = Depends(get_session)):
             cid,
         )
     except ValueError as exc:
-        # Log the detail; return a generic message so we don't leak internals.
+        # log the full reason, return a generic message so we don't leak internals.
         log.warning("Google token verification failed: %s", exc)
         raise HTTPException(status_code=401, detail="Invalid Google credential") from exc
 
-    # Google's library already verifies signature, audience and expiry. We
-    # additionally enforce: (1) a trusted issuer, (2) verified email — without
-    # these, an attacker with an unverified Google account claiming any email
-    # could impersonate users.
+    # google's lib already checks signature, audience, expiry. we add:
+    #  1) trusted issuer  2) email_verified — without these, someone with an
+    # unverified google account could claim any email address.
     iss = info.get("iss")
     if iss not in ("https://accounts.google.com", "accounts.google.com"):
         raise HTTPException(status_code=401, detail="Invalid Google credential")

@@ -1,37 +1,8 @@
-"""
-Evaluator — decides how correct a free-text answer is.
-
-v3 upgrades (gentler, smarter matching)
----------------------------------------
-* **Synonym-aware matching**: "dictionary", "dict", "hashmap", "hash table"
-  all count as "hash map". "maximum" / "biggest" / "largest" count as "max".
-  This means the learner isn't punished for saying the same thing in a
-  different way.
-* **Friendlier threshold**: the correct bar is now **0.55** (down from 0.65).
-  So an answer that covers most of the idea — "a little here and there" —
-  is accepted; we just quietly highlight what's missing.
-* **Kinder notes**: "Right idea — just tighten X" replaces the clinical
-  "45% match to approach 'default'".
-
-Kept from v2
-------------
-* Partial-credit ``score`` float in ``[0, 1]``.
-* Multi-approach support (pick the approach that fits the answer best).
-* Weighted ``core_keywords`` (2.0) vs ``expected_keywords`` (1.0).
-* Error-type inference from give-up patterns, brute-force markers, etc.
-
-Output shape (unchanged — backward-compatible):
-
-    {
-      "correct":    bool,       # True iff score >= correct_threshold
-      "score":      float,      # 0..1 partial credit
-      "error_type": str | None,
-      "matched":    [str],      # keywords/phrases found in the answer
-      "missed":     [str],      # keywords expected but absent
-      "approach":   str | None,
-      "notes":      str,
-    }
-"""
+# Evaluator — decides how correct a free-text answer is.
+# synonym-aware (dictionary = hash map), partial-credit 0..1, kinder notes.
+#
+# Output shape:
+#   { correct, score, error_type, matched, missed, approach, notes }
 
 from __future__ import annotations
 
@@ -39,8 +10,8 @@ import re
 from typing import Any, Iterable
 
 
-CORRECT_THRESHOLD = 0.55   # score ≥ this → "correct" (was 0.65)
-CLOSE_THRESHOLD = 0.35     # score ≥ this → "nearly there"
+CORRECT_THRESHOLD = 0.55   # score >= this means "correct"
+CLOSE_THRESHOLD = 0.35     # score >= this means "nearly there"
 
 
 _GIVE_UP_PATTERNS = (
@@ -59,11 +30,10 @@ _ERROR_SIGNATURES: list[tuple[str, str]] = [
     (r"\b(null|none\s*type|undefined)\b", "logic"),
 ]
 
-# Synonym groups. Each set is treated as "one concept" for matching.
-# If a keyword (or any alias in the same group) appears in the answer, the
-# keyword is considered matched. Keep entries literal — the matcher
-# normalises to alphanumerics+spaces before comparing, so "hash-map",
-# "hash map", and "hashmap" all end up the same string.
+# each set is one concept. if any alias in the group appears in the
+# answer, the keyword counts as matched. matcher normalises to
+# alphanumerics first so "hash-map" / "hash map" / "hashmap" all land
+# on the same string.
 _SYNONYM_GROUPS: tuple[frozenset[str], ...] = (
     frozenset({
         "hash", "hash map", "hashmap", "hash table", "hashtable",
@@ -119,11 +89,7 @@ def _normalize(text: str) -> str:
 
 
 def _aliases_of(keyword: str) -> set[str]:
-    """Return all accepted spellings for a keyword (itself + synonym set).
-
-    Uses normalised forms so callers can pass "hash-map" or "Hash Map" and
-    still land in the right group.
-    """
+    # return every accepted spelling for keyword (self + synonym group).
     norm = _normalize(keyword)
     if not norm:
         return set()
@@ -135,7 +101,7 @@ def _aliases_of(keyword: str) -> set[str]:
 
 
 def _contains(haystack: str, needle: str) -> bool:
-    """Case-insensitive, whitespace-tolerant, synonym-aware substring search."""
+    # case-insensitive, whitespace-tolerant, synonym-aware substring check.
     h = _normalize(haystack)
     if not h:
         return False
@@ -165,8 +131,6 @@ class Evaluator:
     ):
         self.correct_threshold = correct_threshold
         self.close_threshold = close_threshold
-
-    # ------------------------------------------------------------------ public
 
     def evaluate(self, question: dict[str, Any], user_answer: str) -> dict[str, Any]:
         answer = (user_answer or "").strip()
@@ -217,8 +181,6 @@ class Evaluator:
             correct=False,
         )
 
-    # ------------------------------------------------------------------ notes
-
     @staticmethod
     def _correct_note(score: float, missed: list[str]) -> str:
         if score >= 0.85:
@@ -243,10 +205,8 @@ class Evaluator:
             return "You've got part of it. Try naming the main technique first."
         return "Let's step back and name the pattern — then the details follow."
 
-    # ------------------------------------------------------------------ approach resolution
-
     def _resolve_approaches(self, question: dict[str, Any]) -> list[dict[str, Any]]:
-        """Return normalized list of approaches for this question."""
+        # normalise approaches into the {name, core, support} shape we score against.
         declared = question.get("approaches") or []
         if declared:
             return [
@@ -263,8 +223,6 @@ class Evaluator:
             "core": list(question.get("core_keywords") or []),
             "support": list(question.get("expected_keywords") or []),
         }]
-
-    # ------------------------------------------------------------------ scoring
 
     def _score_approach(
         self, answer: str, approach: dict[str, Any]
@@ -299,33 +257,28 @@ class Evaluator:
 
         score = earned / denom
 
-        # Core-keyword enforcement: missing ALL core concepts caps score at 0.45,
-        # so a purely support-keyword answer never crosses the correct threshold.
+        # if they missed every core concept, cap at 0.45 so support-only
+        # answers can't pass the correct threshold by accident.
         if core and not any(_contains(answer, kw) for kw in core):
             score = min(score, 0.45)
 
-        # Dedupe while preserving order — authors sometimes list the same word
-        # in both `core` and `keywords`, and we don't want the UI showing it twice.
+        # authors sometime list a word in both `core` and `keywords` — dedupe
+        # so UI don't show the same chip twice.
         matched = _dedupe_preserve_order(matched)
         missed = _dedupe_preserve_order(missed)
 
         return score, matched, missed
 
-    # ------------------------------------------------------------------ error-type inference
-
     def _infer_error_type(self, answer_lower: str, question: dict[str, Any], score: float) -> str:
         for pattern, etype in _ERROR_SIGNATURES:
             if re.search(pattern, answer_lower):
                 return etype
-        # Use question tags as a secondary hint — but only if the answer is
-        # genuinely off-track, not "nearly there".
+        # fall back to question tags, but only when answer is really off-track.
         pitfalls = {"off_by_one", "base_case_issue", "time_complexity_issue", "state_definition"}
         for tag in question.get("tags") or []:
             if tag in pitfalls:
                 return tag
         return "logic" if score < self.close_threshold else "unknown"
-
-    # ------------------------------------------------------------------ output shaping
 
     @staticmethod
     def _make_result(

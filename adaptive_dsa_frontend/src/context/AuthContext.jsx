@@ -1,15 +1,9 @@
-/**
- * AuthContext — single source of truth for whether the user is signed in.
- *
- * Responsibilities
- * ----------------
- * 1. Hydrate the session from localStorage on first client render so a
- *    refresh doesn't log the user out.
- * 2. Expose `login`, `logout`, and `requestOtp` helpers that wrap the API
- *    service, so pages stay UI-only.
- * 3. Expose `loading` while hydration is in flight — ProtectedRoute uses this
- *    to avoid flashing the login page on refresh.
- */
+// AuthContext — single place that knows if the user is signed in.
+//  1) rehydrate from localStorage on first client render so refresh don't
+//     log the user out.
+//  2) expose login / logout / requestOtp / signup etc. so pages stay UI-only.
+//  3) expose `loading` during hydration — ProtectedRoute uses it to avoid
+//     flashing the login page on refresh.
 
 import { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
@@ -49,8 +43,8 @@ export const AuthProvider = ({ children }) => {
   const [state, setState] = useState({ user: null, token: null, loading: true });
   const router = useRouter();
 
-  // Hydrate from localStorage on mount — must run client-side only.
-  // Finish loading immediately so the shell is not blocked by a slow /user/progress.
+  // hydrate from localStorage on mount — client-only. finish loading right
+  // away so the app shell isn't blocked by a slow /user/progress call.
   useEffect(() => {
     const { token, user } = loadSession();
     setState({ token, user, loading: false });
