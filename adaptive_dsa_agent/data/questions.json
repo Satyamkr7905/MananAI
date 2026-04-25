@@ -1,0 +1,231 @@
+[
+  {
+    "id": "arr_001",
+    "topic": "arrays",
+    "difficulty": 1,
+    "title": "Sum of Array",
+    "description": "Given an integer array nums, return the sum of all elements.",
+    "solution": "Initialize total = 0, loop through each element and accumulate. Return total. O(n) time, O(1) space.",
+    "tags": ["loop", "accumulator"],
+    "expected_keywords": ["loop", "sum", "total", "for", "add"],
+    "time_budget_seconds": 60
+  },
+  {
+    "id": "arr_002",
+    "topic": "arrays",
+    "difficulty": 1,
+    "title": "Find Maximum",
+    "description": "Return the largest value in a non-empty array nums.",
+    "solution": "Track a running max initialized to nums[0]; update while iterating. O(n) time.",
+    "tags": ["loop", "tracking"],
+    "expected_keywords": ["max", "loop", "compare", "largest"],
+    "time_budget_seconds": 60
+  },
+  {
+    "id": "arr_003",
+    "topic": "arrays",
+    "difficulty": 2,
+    "title": "Reverse In-Place",
+    "description": "Reverse an array in-place using O(1) extra space.",
+    "solution": "Two-pointer swap: i from start, j from end, swap until i >= j. Watch the loop boundary.",
+    "tags": ["two_pointer", "off_by_one", "in_place"],
+    "expected_keywords": ["two pointer", "swap", "i++", "j--", "while", "reverse"],
+    "time_budget_seconds": 120
+  },
+  {
+    "id": "arr_004",
+    "topic": "arrays",
+    "difficulty": 2,
+    "title": "Remove Duplicates (Sorted)",
+    "description": "Given a sorted array, remove duplicates in-place and return the new length.",
+    "solution": "Slow/fast pointers. Slow holds the write position; fast scans. If nums[fast] != nums[slow], slow++ and copy.",
+    "tags": ["two_pointer", "off_by_one"],
+    "expected_keywords": ["slow", "fast", "pointer", "duplicate", "index"],
+    "time_budget_seconds": 180
+  },
+  {
+    "id": "arr_005",
+    "topic": "arrays",
+    "difficulty": 3,
+    "title": "Two Sum",
+    "description": "Given nums and target, return indices of two numbers that add to target. Assume exactly one solution.",
+    "solution": "Single-pass hash map: for each num, check if target - num is already in the map. O(n) time, O(n) space.",
+    "tags": ["hash_map", "index"],
+    "core_keywords": ["complement", "target"],
+    "expected_keywords": ["hash", "map", "dictionary", "complement", "target"],
+    "approaches": [
+      {
+        "name": "hash_map",
+        "core": ["hash", "complement"],
+        "keywords": ["hash", "map", "dictionary", "complement", "target", "seen"]
+      },
+      {
+        "name": "sort_two_pointer",
+        "core": ["sort", "two pointer"],
+        "keywords": ["sort", "two pointer", "left", "right", "target", "original index"]
+      }
+    ],
+    "time_budget_seconds": 240
+  },
+  {
+    "id": "arr_006",
+    "topic": "arrays",
+    "difficulty": 3,
+    "title": "Maximum Subarray Sum",
+    "description": "Find the contiguous subarray with the largest sum (Kadane's algorithm).",
+    "solution": "Kadane: current = max(num, current + num); best = max(best, current). O(n).",
+    "tags": ["kadane", "dp_precursor", "running_sum"],
+    "core_keywords": ["current", "max"],
+    "expected_keywords": ["kadane", "current", "max", "running", "sum"],
+    "approaches": [
+      {
+        "name": "kadane",
+        "core": ["current", "max"],
+        "keywords": ["kadane", "current", "max", "running", "sum", "ending"]
+      },
+      {
+        "name": "divide_and_conquer",
+        "core": ["divide", "conquer"],
+        "keywords": ["divide", "conquer", "cross", "left", "right", "merge"]
+      }
+    ],
+    "time_budget_seconds": 300
+  },
+  {
+    "id": "arr_007",
+    "topic": "arrays",
+    "difficulty": 4,
+    "title": "Longest Substring Without Repeating Characters",
+    "description": "Given a string, find the length of the longest substring with all unique characters.",
+    "solution": "Sliding window + hash set. Expand right; when a repeat is found, shrink from left until unique.",
+    "tags": ["sliding_window", "hash_map", "two_pointer"],
+    "expected_keywords": ["sliding", "window", "set", "left", "right", "unique"],
+    "time_budget_seconds": 360
+  },
+  {
+    "id": "arr_008",
+    "topic": "arrays",
+    "difficulty": 5,
+    "title": "Trapping Rain Water",
+    "description": "Given heights representing an elevation map, compute how much water can be trapped.",
+    "solution": "Two-pointer with running left_max/right_max. Move the smaller side inward, add trapped water.",
+    "tags": ["two_pointer", "hard", "running_max"],
+    "expected_keywords": ["left", "right", "max", "two pointer", "trap", "water"],
+    "time_budget_seconds": 600
+  },
+
+  {
+    "id": "dp_001",
+    "topic": "dp",
+    "difficulty": 1,
+    "title": "Fibonacci Number",
+    "description": "Return the n-th Fibonacci number (F(0)=0, F(1)=1).",
+    "solution": "Bottom-up: a, b = 0, 1; loop n times updating (a, b). O(n) time, O(1) space.",
+    "tags": ["base_case", "bottom_up"],
+    "expected_keywords": ["fib", "a", "b", "loop", "base", "0", "1"],
+    "time_budget_seconds": 90
+  },
+  {
+    "id": "dp_002",
+    "topic": "dp",
+    "difficulty": 1,
+    "title": "Climbing Stairs",
+    "description": "You can climb 1 or 2 steps at a time. How many distinct ways to reach step n?",
+    "solution": "dp[i] = dp[i-1] + dp[i-2]; base: dp[0]=1, dp[1]=1. Identical to Fibonacci.",
+    "tags": ["base_case", "1d_dp"],
+    "expected_keywords": ["dp", "i-1", "i-2", "base", "fib"],
+    "time_budget_seconds": 120
+  },
+  {
+    "id": "dp_003",
+    "topic": "dp",
+    "difficulty": 2,
+    "title": "House Robber",
+    "description": "Given non-negative integers, maximize the sum you can rob without robbing two adjacent houses.",
+    "solution": "dp[i] = max(dp[i-1], dp[i-2] + nums[i]). Space-optimize to two variables.",
+    "tags": ["1d_dp", "state_definition"],
+    "expected_keywords": ["dp", "max", "i-1", "i-2", "adjacent"],
+    "time_budget_seconds": 240
+  },
+  {
+    "id": "dp_004",
+    "topic": "dp",
+    "difficulty": 2,
+    "title": "Min Cost Climbing Stairs",
+    "description": "Pay cost[i] to step on stair i; move 1 or 2 steps. Minimum cost to reach the top.",
+    "solution": "dp[i] = cost[i] + min(dp[i-1], dp[i-2]); answer = min(dp[n-1], dp[n-2]).",
+    "tags": ["1d_dp", "base_case"],
+    "expected_keywords": ["dp", "min", "cost", "i-1", "i-2"],
+    "time_budget_seconds": 240
+  },
+  {
+    "id": "dp_005",
+    "topic": "dp",
+    "difficulty": 3,
+    "title": "Coin Change",
+    "description": "Given coins and amount, return the fewest coins needed to make amount, or -1 if impossible.",
+    "solution": "dp[x] = min(dp[x - c] + 1) for each coin c <= x; dp[0] = 0; unreachable stays INF.",
+    "tags": ["unbounded_knapsack", "1d_dp", "state_definition"],
+    "core_keywords": ["dp", "min"],
+    "expected_keywords": ["dp", "min", "coin", "amount", "infinity", "-1"],
+    "approaches": [
+      {
+        "name": "bottom_up_dp",
+        "core": ["dp", "min"],
+        "keywords": ["dp", "min", "coin", "amount", "infinity", "dp[0]", "iterate"]
+      },
+      {
+        "name": "memoized_recursion",
+        "core": ["memo", "min"],
+        "keywords": ["memo", "recursion", "min", "coin", "amount", "cache"]
+      }
+    ],
+    "time_budget_seconds": 420
+  },
+  {
+    "id": "dp_006",
+    "topic": "dp",
+    "difficulty": 3,
+    "title": "Longest Increasing Subsequence",
+    "description": "Return the length of the longest strictly increasing subsequence of nums.",
+    "solution": "O(n^2) DP: dp[i] = 1 + max(dp[j] for j<i if nums[j]<nums[i]). Patience-sort gives O(n log n).",
+    "tags": ["1d_dp", "time_complexity_issue"],
+    "core_keywords": ["dp"],
+    "expected_keywords": ["dp", "increasing", "subsequence", "max", "j"],
+    "approaches": [
+      {
+        "name": "n_squared_dp",
+        "core": ["dp", "max"],
+        "keywords": ["dp", "increasing", "subsequence", "max", "j", "i"]
+      },
+      {
+        "name": "patience_sort",
+        "core": ["binary search", "tails"],
+        "keywords": ["binary search", "patience", "tails", "piles", "n log n"]
+      }
+    ],
+    "time_budget_seconds": 480
+  },
+  {
+    "id": "dp_007",
+    "topic": "dp",
+    "difficulty": 4,
+    "title": "0/1 Knapsack",
+    "description": "Pick items (each at most once) with weights and values to maximize value under capacity W.",
+    "solution": "2D DP over (i, w): include vs. skip. Space-optimize to 1D iterated in reverse.",
+    "tags": ["2d_dp", "knapsack", "state_definition"],
+    "expected_keywords": ["dp", "weight", "value", "capacity", "include", "skip"],
+    "time_budget_seconds": 540
+  },
+  {
+    "id": "dp_008",
+    "topic": "dp",
+    "difficulty": 5,
+    "title": "Edit Distance",
+    "description": "Compute the minimum number of insert/delete/replace operations to convert word1 to word2.",
+    "solution": "dp[i][j] = min(insert, delete, replace) with careful base cases dp[0][j]=j, dp[i][0]=i.",
+    "tags": ["2d_dp", "base_case", "hard"],
+    "expected_keywords": ["dp", "insert", "delete", "replace", "min", "i-1", "j-1"],
+    "time_budget_seconds": 720
+  }
+]

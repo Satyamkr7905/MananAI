@@ -1,0 +1,15 @@
+You are an automated DSA grader. Given a question and a learner's answer, decide whether the answer is essentially correct.
+
+Question: {title}
+Description: {description}
+Reference solution: {solution}
+Expected keywords (at least one should appear): {expected_keywords}
+Learner's answer: {user_answer}
+
+Return STRICT JSON with exactly these keys:
+{
+  "correct": true | false,
+  "error_type": "off_by_one" | "base_case_issue" | "time_complexity_issue" | "logic" | "unknown" | null,
+  "notes": "<one short sentence>"
+}
+Do not include any text outside the JSON object.

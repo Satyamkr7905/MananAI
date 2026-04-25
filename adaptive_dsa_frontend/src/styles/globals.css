@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------------
+   Design tokens & base resets
+   ------------------------------------------------------------------ */
+@layer base {
+  html, body, #__next {
+    @apply h-full;
+  }
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased
+           dark:bg-slate-950 dark:text-slate-100;
+    font-feature-settings: "ss01", "cv11";
+  }
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  ::selection { @apply bg-brand-100 text-brand-900; }
+
+  /* Custom scrollbar — subtle, doesn't shout. */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-200 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-slate-300; }
+}
+
+/* ------------------------------------------------------------------
+   Reusable component classes
+   ------------------------------------------------------------------ */
+@layer components {
+  .card {
+    @apply bg-white rounded-2xl ring-1 ring-slate-200 shadow-card
+           dark:bg-slate-900/80 dark:ring-slate-800;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-medium rounded-xl
+           transition-colors disabled:opacity-60 disabled:cursor-not-allowed
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white hover:bg-brand-700 px-4 py-2.5;
+  }
+  .btn-ghost {
+    @apply btn bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 px-4 py-2.5
+           dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-800;
+  }
+  .btn-subtle {
+    @apply btn text-slate-600 hover:bg-slate-100 px-3 py-2;
+  }
+
+  .input {
+    @apply w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-3.5 py-2.5
+           text-slate-900 placeholder:text-slate-400 shadow-sm
+           focus:ring-2 focus:ring-brand-500 focus:outline-none transition
+           dark:bg-slate-900 dark:ring-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  .badge-brand   { @apply badge bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-100; }
+  .badge-success { @apply badge bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-100; }
+  .badge-warn    { @apply badge bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-100; }
+  .badge-danger  { @apply badge bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-100; }
+  .badge-neutral { @apply badge bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200; }
+
+  .section-title {
+    @apply text-sm font-semibold text-slate-500 uppercase tracking-wide;
+  }
+}

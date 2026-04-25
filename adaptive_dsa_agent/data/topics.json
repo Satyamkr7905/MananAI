@@ -1,0 +1,14 @@
+{
+  "arrays": {
+    "display_name": "Arrays",
+    "description": "Contiguous, index-addressable data: traversal, two-pointer, prefix sums, sliding window.",
+    "prerequisites": [],
+    "common_pitfalls": ["off_by_one", "index_out_of_bounds", "two_pointer"]
+  },
+  "dp": {
+    "display_name": "Dynamic Programming",
+    "description": "Solving problems by combining optimal sub-solutions; memoization and tabulation.",
+    "prerequisites": ["arrays"],
+    "common_pitfalls": ["base_case_issue", "state_definition", "time_complexity_issue"]
+  }
+}

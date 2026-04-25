@@ -1,0 +1,62 @@
+# Full stack: PostgreSQL + FastAPI (adaptive_dsa_agent) + Next.js (adaptive_dsa_frontend).
+#
+# Usage (from this directory):
+#   docker compose up --build
+#
+# The API is published at http://localhost:8000. The app reads secrets from
+# adaptive_dsa_agent/.env — create it from .env.example if needed.
+# DATABASE_URL in that file is overridden here so the API uses the `db` service.
+# For the Next.js build, set GOOGLE_CLIENT_ID in a `.env` file next to this
+# file (or export) so NEXT_PUBLIC_GOOGLE_CLIENT_ID is embedded; same value as
+# GOOGLE_CLIENT_ID for the API.
+
+name: adaptive-dsa
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: adaptive
+      POSTGRES_PASSWORD: adaptive
+      POSTGRES_DB: adaptive_dsa_tutor
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U adaptive -d adaptive_dsa_tutor"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api:
+    build:
+      context: ./adaptive_dsa_agent
+      dockerfile: Dockerfile
+    env_file:
+      - ./adaptive_dsa_agent/.env
+    environment:
+      # Overrides host .env so the container talks to the compose network DB
+      DATABASE_URL: postgresql+psycopg://adaptive:adaptive@db:5432/adaptive_dsa_tutor
+      CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000,http://web:3000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./adaptive_dsa_frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE: "http://localhost:8000"
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

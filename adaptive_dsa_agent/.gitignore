@@ -1,0 +1,45 @@
+# --- Secrets & per-user state (NEVER commit) ---
+.env
+.env.*
+!.env.example
+data/user_progress.json
+
+#node
+node_modules/
+
+#database
+*.db
+
+#logs
+*.log
+
+#misc
+.DS_Store
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# --- Virtualenvs ---
+.venv/
+venv/
+env/
+
+# --- IDE ---
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# --- Test / tooling caches ---
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
