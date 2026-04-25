@@ -8,7 +8,7 @@ import TopicCard from "@/components/TopicCard";
 import Highlight from "@/components/Highlight";
 import Loader from "@/components/Loader";
 import EmptyState from "@/components/EmptyState";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useApi } from "@/hooks/useApi";
 import { getStats, getUserImprovement, isRealBackendConfigured } from "@/services/api";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,15 +25,8 @@ const Graph = dynamic(() => import("@/components/Graph"), {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [mockTick, setMockTick] = useState(0);
-  useEffect(() => {
-    const h = () => setMockTick((t) => t + 1);
-    if (typeof window === "undefined") return;
-    window.addEventListener("adt-mock-changed", h);
-    return () => window.removeEventListener("adt-mock-changed", h);
-  }, []);
   const { data, loading } = useApi(getStats);
-  const useServer = useMemo(() => isRealBackendConfigured(), [mockTick]);
+  const useServer = useMemo(() => isRealBackendConfigured(), []);
   const { data: imp, loading: impLoading } = useApi(getUserImprovement, { skip: !useServer, deps: [useServer] });
 
   const firstName = (user?.name || user?.email || "there").split(/\s|@/)[0];
@@ -140,7 +133,7 @@ export default function Dashboard() {
                 </ul>
               )}
               {imp && !impLoading && !imp.events?.length && (
-                <p className="text-sm text-slate-500">Submit answers in Practice to build your log.</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Submit answers in Practice to build your log.</p>
               )}
             </div>
           )}
@@ -151,7 +144,7 @@ export default function Dashboard() {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="section-title">Progress</div>
-                  <h2 className="text-lg font-semibold text-slate-900 mt-1">Accuracy over the last 14 days</h2>
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mt-1">Accuracy over the last 14 days</h2>
                 </div>
                 <TrendingUp className="h-5 w-5 text-emerald-500" />
               </div>
@@ -165,11 +158,11 @@ export default function Dashboard() {
             {/* Highlights */}
             <div className="card p-5">
               <div className="section-title">Highlights</div>
-              <h2 className="text-lg font-semibold text-slate-900 mt-1 mb-2">Recent wins</h2>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mt-1 mb-2">Recent wins</h2>
               {data.highlights.length === 0 ? (
                 <EmptyState title="No highlights yet" description="Solve your first question to unlock achievements." />
               ) : (
-                <ul className="divide-y divide-slate-100 -mt-1">
+                <ul className="divide-y divide-slate-100 dark:divide-slate-800 -mt-1">
                   {data.highlights.map((h) => (
                     <li key={h.id}><Highlight item={h} /></li>
                   ))}
@@ -183,7 +176,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <div className="section-title">Topic strength</div>
-                <h2 className="text-lg font-semibold text-slate-900 mt-1">Where you stand per topic</h2>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mt-1">Where you stand per topic</h2>
               </div>
             </div>
 

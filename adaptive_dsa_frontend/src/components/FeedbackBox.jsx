@@ -18,9 +18,9 @@ export default function FeedbackBox({ result }) {
   const Icon = correct ? CheckCircle2 : score >= 0.4 ? Target : XCircle;
 
   const toneClasses = {
-    success: "ring-emerald-200 bg-emerald-50 text-emerald-900",
-    brand:   "ring-brand-200   bg-brand-50   text-brand-900",
-    danger:  "ring-rose-200    bg-rose-50    text-rose-900",
+    success: "ring-emerald-200 bg-emerald-50 text-emerald-900 dark:ring-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-100",
+    brand:   "ring-brand-200   bg-brand-50   text-brand-900   dark:ring-brand-800   dark:bg-brand-900/30   dark:text-brand-100",
+    danger:  "ring-rose-200    bg-rose-50    text-rose-900    dark:ring-rose-800    dark:bg-rose-900/30    dark:text-rose-100",
   }[tone];
 
   const lead = correct

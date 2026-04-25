@@ -29,10 +29,10 @@ export default function CodeEditor({
   return (
     <div className="card p-5 flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <label htmlFor={id} className="text-sm font-medium text-slate-700">
+        <label htmlFor={id} className="text-sm font-medium text-slate-700 dark:text-slate-200">
           Your answer
         </label>
-        <span className="text-xs text-slate-400">Ctrl + Enter to submit</span>
+        <span className="text-xs text-slate-400 dark:text-slate-500">Ctrl + Enter to submit</span>
       </div>
       <textarea
         id={id}
@@ -48,6 +48,7 @@ export default function CodeEditor({
           font-mono text-sm leading-relaxed p-4
           focus:outline-none focus:ring-2 focus:ring-brand-500
           disabled:opacity-60 resize-y min-h-[220px]
+          dark:bg-slate-950 dark:ring-1 dark:ring-slate-800
         "
       />
       <div className="flex items-center justify-end gap-2">

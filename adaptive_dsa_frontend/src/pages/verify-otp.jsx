@@ -6,7 +6,6 @@ import toast from "react-hot-toast";
 import AuthShell from "@/components/AuthShell";
 import Loader from "@/components/Loader";
 import { useAuth } from "@/hooks/useAuth";
-import { isRealBackendConfigured } from "@/services/api";
 import { getPendingEmail } from "@/services/auth";
 
 const OTP_LEN = 6;
@@ -124,13 +123,13 @@ export default function VerifyOtp() {
         </button>
 
         <div className="flex items-center gap-2 mb-2">
-          <div className="h-9 w-9 rounded-xl bg-brand-50 text-brand-600 grid place-items-center">
+          <div className="h-9 w-9 rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-300 grid place-items-center">
             <ShieldCheck className="h-5 w-5" />
           </div>
-          <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">{title}</h2>
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100 tracking-tight">{title}</h2>
         </div>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          {devOtpHint && isRealBackendConfigured() ? (
+          {devOtpHint ? (
             <>SMTP is not configured on the server — use the code below (same one shown in the toast). </>
           ) : (
             <>
@@ -140,22 +139,13 @@ export default function VerifyOtp() {
           )}
         </p>
 
-        {devOtpHint && isRealBackendConfigured() && (
+        {devOtpHint && (
           <p className="mt-2 text-sm text-amber-950 dark:text-amber-100 bg-amber-50 dark:bg-amber-950/60 ring-1 ring-amber-200 dark:ring-amber-800 rounded-xl px-3 py-2.5">
             Your one-time code: <span className="font-mono text-lg font-semibold tracking-widest">{devOtpHint}</span>
             <span className="block text-xs text-amber-900/80 dark:text-amber-200/80 mt-1.5">
               For real email delivery, set <code className="font-mono">GMAIL_USER</code> and{" "}
-              <code className="font-mono">GMAIL_APP_PASSWORD</code> in{" "}
-              <code className="font-mono">adaptive_dsa_agent/.env</code>.
+              <code className="font-mono">GMAIL_APP_PASSWORD</code> on your server.
             </span>
-          </p>
-        )}
-
-        {!isRealBackendConfigured() && (
-          <p className="mt-2 text-xs text-amber-800 dark:text-amber-200 bg-amber-50 dark:bg-amber-950/40 ring-1 ring-amber-200 dark:ring-amber-800 rounded-lg px-3 py-2">
-            Demo mode: use code <span className="font-mono font-semibold">123456</span>. For real OTPs, set{" "}
-            <code className="font-mono text-[11px]">NEXT_PUBLIC_API_BASE</code> in{" "}
-            <code className="font-mono text-[11px]">.env.local</code>.
           </p>
         )}
 
@@ -182,9 +172,9 @@ export default function VerifyOtp() {
           </button>
         </form>
 
-        <div className="mt-5 text-sm text-slate-500">
+        <div className="mt-5 text-sm text-slate-500 dark:text-slate-400">
           Didn't get it?{" "}
-          <button type="button" onClick={onResend} className="text-brand-600 hover:text-brand-700 font-medium">
+          <button type="button" onClick={onResend} className="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 font-medium">
             Resend code
           </button>
         </div>

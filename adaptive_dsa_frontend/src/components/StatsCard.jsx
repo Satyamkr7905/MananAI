@@ -12,11 +12,11 @@ import { cn } from "@/utils/cn";
  *   icon     : lucide component
  */
 const TONES = {
-  brand:   { bg: "bg-brand-50",    fg: "text-brand-600" },
-  success: { bg: "bg-emerald-50",  fg: "text-emerald-600" },
-  warn:    { bg: "bg-amber-50",    fg: "text-amber-600" },
-  danger:  { bg: "bg-rose-50",     fg: "text-rose-600" },
-  neutral: { bg: "bg-slate-100",   fg: "text-slate-600" },
+  brand:   { bg: "bg-brand-50 dark:bg-brand-900/40",     fg: "text-brand-600 dark:text-brand-300" },
+  success: { bg: "bg-emerald-50 dark:bg-emerald-900/40", fg: "text-emerald-600 dark:text-emerald-300" },
+  warn:    { bg: "bg-amber-50 dark:bg-amber-900/40",     fg: "text-amber-600 dark:text-amber-300" },
+  danger:  { bg: "bg-rose-50 dark:bg-rose-900/40",       fg: "text-rose-600 dark:text-rose-300" },
+  neutral: { bg: "bg-slate-100 dark:bg-slate-800",       fg: "text-slate-600 dark:text-slate-300" },
 };
 
 export default function StatsCard({ label, value, suffix, delta, tone = "brand", icon: Icon }) {
@@ -24,13 +24,13 @@ export default function StatsCard({ label, value, suffix, delta, tone = "brand",
   return (
     <div className="card p-5 flex items-start justify-between gap-4">
       <div className="min-w-0">
-        <div className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</div>
+        <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">{label}</div>
         <div className="mt-2 flex items-baseline gap-1.5">
-          <div className="text-3xl font-semibold text-slate-900 tracking-tight tabular-nums">{value}</div>
-          {suffix && <div className="text-sm text-slate-500">{suffix}</div>}
+          <div className="text-3xl font-semibold text-slate-900 dark:text-slate-100 tracking-tight tabular-nums">{value}</div>
+          {suffix && <div className="text-sm text-slate-500 dark:text-slate-400">{suffix}</div>}
         </div>
         {delta && (
-          <div className="mt-1.5 text-xs text-slate-500">{delta}</div>
+          <div className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">{delta}</div>
         )}
       </div>
       {Icon && (

@@ -23,15 +23,15 @@ export default function TopicCard({ topic, variant }) {
     <div className={cn("card p-5 flex flex-col gap-3")}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="font-medium text-slate-900">{display}</div>
-          <div className="text-xs text-slate-500 mt-0.5">Level {level}/5 · {solved} solved</div>
+          <div className="font-medium text-slate-900 dark:text-slate-100">{display}</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Level {level}/5 · {solved} solved</div>
         </div>
         {ribbon}
       </div>
 
       <ProgressBar value={progress} tone={tone} />
 
-      <div className="flex items-center justify-between text-xs text-slate-500">
+      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
         <span>{pct(progress)} complete</span>
         <span className="tabular-nums">Accuracy {pct(accuracy)}</span>
       </div>

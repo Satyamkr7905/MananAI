@@ -52,7 +52,7 @@ export default function HistoryPage() {
       subtitle="Everything you've solved, with the questions you mastered on the first try flagged."
       actions={
         progress.history.length > 0 && (
-          <button onClick={onReset} className="btn-ghost text-sm text-rose-600 hover:bg-rose-50">
+          <button onClick={onReset} className="btn-ghost text-sm text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/30">
             <Trash2 className="h-4 w-4" />
             Clear history
           </button>
@@ -95,14 +95,16 @@ export default function HistoryPage() {
                   className={cn(
                     "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-colors shrink-0 ring-1",
                     active
-                      ? "bg-brand-600 text-white ring-brand-600"
-                      : "bg-white text-slate-600 ring-slate-200 hover:ring-slate-300 hover:text-slate-900",
+                      ? "bg-brand-600 text-white ring-brand-600 dark:bg-brand-500 dark:ring-brand-500"
+                      : "bg-white text-slate-600 ring-slate-200 hover:ring-slate-300 hover:text-slate-900 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700 dark:hover:ring-slate-600 dark:hover:text-slate-100",
                   )}
                 >
                   {t === "all" ? "All" : capitalize(t)}
                   <span className={cn(
                     "text-xs rounded-full px-1.5 py-0.5 tabular-nums",
-                    active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500",
+                    active
+                      ? "bg-white/20 text-white"
+                      : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
                   )}>{count}</span>
                 </button>
               );
@@ -111,7 +113,7 @@ export default function HistoryPage() {
 
           {/* Records list */}
           <div className="card overflow-hidden">
-            <div className="hidden md:grid grid-cols-12 gap-4 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 bg-slate-50 border-b border-slate-200">
+            <div className="hidden md:grid grid-cols-12 gap-4 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 bg-slate-50 border-b border-slate-200 dark:text-slate-400 dark:bg-slate-900/60 dark:border-slate-800">
               <div className="col-span-5">Question</div>
               <div className="col-span-2">Topic</div>
               <div className="col-span-1 text-center">Diff</div>
@@ -120,30 +122,32 @@ export default function HistoryPage() {
               <div className="col-span-2 text-right">Solved</div>
             </div>
 
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-slate-100 dark:divide-slate-800">
               {filtered.map((r) => {
                 const mastered = r.firstAttempt && r.hintsUsed === 0;
                 return (
                   <li
                     key={`${r.qid}-${r.solvedAt}`}
-                    className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center px-5 py-4 hover:bg-slate-50/60 transition-colors"
+                    className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center px-5 py-4 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
                   >
                     <div className="md:col-span-5 min-w-0 flex items-center gap-3">
                       <div className={cn(
                         "h-9 w-9 rounded-xl grid place-items-center shrink-0",
-                        mastered ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500",
+                        mastered
+                          ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300"
+                          : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
                       )}>
                         {mastered ? <Sparkles className="h-4.5 w-4.5" /> : <Check className="h-4.5 w-4.5" />}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-medium text-slate-900 truncate flex items-center gap-2">
+                        <div className="font-medium text-slate-900 dark:text-slate-100 truncate flex items-center gap-2">
                           <span className="truncate">{r.title}</span>
                           {mastered && <span className="badge-success shrink-0"><Sparkles className="h-3 w-3" /> Mastered</span>}
                         </div>
-                        <div className="text-xs text-slate-500 font-mono truncate">{r.qid}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate">{r.qid}</div>
                       </div>
                     </div>
-                    <div className="md:col-span-2 text-sm text-slate-700 capitalize">
+                    <div className="md:col-span-2 text-sm text-slate-700 dark:text-slate-300 capitalize">
                       <span className="badge-neutral">{r.topic}</span>
                     </div>
                     <div className="md:col-span-1 md:text-center">
@@ -151,15 +155,15 @@ export default function HistoryPage() {
                     </div>
                     <div className="md:col-span-1 md:text-center text-sm tabular-nums">
                       {r.hintsUsed === 0 ? (
-                        <span className="text-emerald-600 font-medium">0</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">0</span>
                       ) : (
-                        <span className="text-slate-600">{r.hintsUsed}</span>
+                        <span className="text-slate-600 dark:text-slate-300">{r.hintsUsed}</span>
                       )}
                     </div>
-                    <div className="md:col-span-1 md:text-center text-sm font-medium tabular-nums">
+                    <div className="md:col-span-1 md:text-center text-sm font-medium tabular-nums text-slate-900 dark:text-slate-100">
                       {pct(r.score)}
                     </div>
-                    <div className="md:col-span-2 md:text-right text-sm text-slate-500">
+                    <div className="md:col-span-2 md:text-right text-sm text-slate-500 dark:text-slate-400">
                       {shortDate(r.solvedAt)}
                     </div>
                   </li>
@@ -168,13 +172,13 @@ export default function HistoryPage() {
             </ul>
 
             {filtered.length === 0 && (
-              <div className="p-10 text-center text-sm text-slate-500">
+              <div className="p-10 text-center text-sm text-slate-500 dark:text-slate-400">
                 No solves recorded for this topic yet.
               </div>
             )}
           </div>
 
-          <div className="text-xs text-slate-400 flex items-center gap-1.5">
+          <div className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
             <RotateCcw className="h-3.5 w-3.5" />
             With a real backend, history syncs from the server on login. Local storage keeps a fast offline copy.
           </div>
@@ -187,17 +191,17 @@ export default function HistoryPage() {
 // ---------------------------------------------------------------------------
 
 const KPI_TONES = {
-  brand:   "bg-brand-50 text-brand-600",
-  success: "bg-emerald-50 text-emerald-600",
-  warn:    "bg-amber-50 text-amber-600",
-  neutral: "bg-slate-100 text-slate-600",
+  brand:   "bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-300",
+  success: "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300",
+  warn:    "bg-amber-50 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300",
+  neutral: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
 };
 
 const Kpi = ({ label, value, subtitle, tone = "brand" }) => (
   <div className="card p-4">
-    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</div>
+    <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</div>
     <div className="mt-1 flex items-baseline gap-2">
-      <div className="text-2xl font-semibold text-slate-900 tabular-nums">{value}</div>
+      <div className="text-2xl font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{value}</div>
     </div>
     {subtitle && (
       <div className={cn("mt-1 text-xs inline-flex rounded-full px-2 py-0.5", KPI_TONES[tone] || KPI_TONES.brand)}>

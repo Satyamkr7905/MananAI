@@ -29,8 +29,8 @@ export default function FilterBar({
 
   return (
     <div className="card p-4 flex flex-col md:flex-row md:items-center gap-4">
-      <div className="flex items-center gap-2 text-sm font-medium text-slate-700 shrink-0">
-        <Filter className="h-4 w-4 text-slate-400" />
+      <div className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200 shrink-0">
+        <Filter className="h-4 w-4 text-slate-400 dark:text-slate-500" />
         Filter
       </div>
 
@@ -57,7 +57,7 @@ export default function FilterBar({
 
       {/* difficulty dropdown */}
       <div className="flex items-center gap-2 md:ml-auto">
-        <label htmlFor="diff" className="text-sm text-slate-500">Difficulty</label>
+        <label htmlFor="diff" className="text-sm text-slate-500 dark:text-slate-400">Difficulty</label>
         <select
           id="diff"
           value={selectedDifficulty}
@@ -85,8 +85,8 @@ const Pill = ({ active, onClick, count, children }) => (
     className={cn(
       "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-colors shrink-0 ring-1",
       active
-        ? "bg-brand-600 text-white ring-brand-600"
-        : "bg-white text-slate-600 ring-slate-200 hover:ring-slate-300 hover:text-slate-900",
+        ? "bg-brand-600 text-white ring-brand-600 dark:bg-brand-500 dark:ring-brand-500"
+        : "bg-white text-slate-600 ring-slate-200 hover:ring-slate-300 hover:text-slate-900 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700 dark:hover:ring-slate-600 dark:hover:text-slate-100",
     )}
   >
     {children}
@@ -94,7 +94,9 @@ const Pill = ({ active, onClick, count, children }) => (
       <span
         className={cn(
           "text-xs rounded-full px-1.5 py-0.5 tabular-nums",
-          active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500",
+          active
+            ? "bg-white/20 text-white"
+            : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
         )}
       >
         {count}

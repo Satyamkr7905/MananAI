@@ -56,9 +56,9 @@ export default function Analytics() {
             <div className="flex items-center justify-between mb-2">
               <div>
                 <div className="section-title">Mistake breakdown</div>
-                <h2 className="text-lg font-semibold text-slate-900 mt-1">What's tripping you up</h2>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mt-1">What's tripping you up</h2>
               </div>
-              <PieIcon className="h-5 w-5 text-slate-400" />
+              <PieIcon className="h-5 w-5 text-slate-400 dark:text-slate-500" />
             </div>
             {mistakes.length === 0 ? (
               <EmptyState title="No mistakes tracked yet" description="Your breakdown will appear after your first few attempts." />
@@ -69,19 +69,19 @@ export default function Analytics() {
 
           <div className="card p-5 lg:col-span-2">
             <div className="section-title">Top categories</div>
-            <h2 className="text-lg font-semibold text-slate-900 mt-1 mb-3">By frequency</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mt-1 mb-3">By frequency</h2>
             <ul className="flex flex-col gap-3">
-              {mistakes.length === 0 && <li className="text-sm text-slate-500">Nothing recorded yet.</li>}
+              {mistakes.length === 0 && <li className="text-sm text-slate-500 dark:text-slate-400">Nothing recorded yet.</li>}
               {mistakes.map((m) => {
                 const p = totalMistakes ? m.count / totalMistakes : 0;
                 return (
                   <li key={m.key} className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-slate-700">{ERROR_LABELS[m.key] || m.key}</span>
-                        <span className="text-xs text-slate-500 tabular-nums">{m.count} · {Math.round(p * 100)}%</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-200">{ERROR_LABELS[m.key] || m.key}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">{m.count} · {Math.round(p * 100)}%</span>
                       </div>
-                      <div className="mt-1.5 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="mt-1.5 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-brand-500 rounded-full transition-all"
                           style={{ width: `${p * 100}%` }}
@@ -101,9 +101,9 @@ export default function Analytics() {
             <div className="flex items-center justify-between mb-2">
               <div>
                 <div className="section-title">Weekly performance</div>
-                <h2 className="text-lg font-semibold text-slate-900 mt-1">Solved per day (last 7)</h2>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mt-1">Solved per day (last 7)</h2>
               </div>
-              <BarChart3 className="h-5 w-5 text-slate-400" />
+              <BarChart3 className="h-5 w-5 text-slate-400 dark:text-slate-500" />
             </div>
             <WeeklyBarChart data={weekly} />
           </div>
@@ -112,7 +112,7 @@ export default function Analytics() {
             <div className="flex items-center justify-between mb-2">
               <div>
                 <div className="section-title">Accuracy trend</div>
-                <h2 className="text-lg font-semibold text-slate-900 mt-1">14-day rolling view</h2>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mt-1">14-day rolling view</h2>
               </div>
               <TrendingUp className="h-5 w-5 text-emerald-500" />
             </div>

@@ -7,7 +7,6 @@ import toast from "react-hot-toast";
 import AuthShell from "@/components/AuthShell";
 import Loader from "@/components/Loader";
 import { useAuth } from "@/hooks/useAuth";
-import { isRealBackendConfigured } from "@/services/api";
 
 const MIN_PW = 8;
 
@@ -27,7 +26,6 @@ function scorePassword(pw) {
 export default function Signup() {
   const router = useRouter();
   const { token, loading, signup } = useAuth();
-  const realBackend = isRealBackendConfigured();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -69,27 +67,18 @@ export default function Signup() {
   return (
     <AuthShell>
       <div className="animate-fade-in">
-        <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">Create your account</h2>
-        <p className="mt-1.5 text-sm text-slate-500">
+        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100 tracking-tight">Create your account</h2>
+        <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
           We'll email a 6-digit code to verify that Gmail address is yours.
         </p>
 
-        {!realBackend && (
-          <div className="mt-4 rounded-xl bg-amber-50 ring-1 ring-amber-200 px-3 py-2.5 text-xs text-amber-900 leading-relaxed">
-            <strong className="font-semibold">Demo mode is on.</strong> Sign-up needs the real FastAPI backend. Set{" "}
-            <code className="rounded bg-amber-100/80 px-1 py-0.5 font-mono text-[11px]">NEXT_PUBLIC_API_BASE</code> in{" "}
-            <code className="rounded bg-amber-100/80 px-1 py-0.5 font-mono text-[11px]">.env.local</code> and start the
-            API server.
-          </div>
-        )}
-
         <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1.5">
-              Name <span className="text-slate-400 font-normal">(optional)</span>
+            <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+              Name <span className="text-slate-400 dark:text-slate-500 font-normal">(optional)</span>
             </label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
               <input
                 id="name"
                 type="text"
@@ -104,11 +93,11 @@ export default function Signup() {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
+            <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
               Email
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
               <input
                 id="email"
                 type="email"
@@ -123,11 +112,11 @@ export default function Signup() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1.5">
+            <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
               <input
                 id="password"
                 type={showPw ? "text" : "password"}
@@ -143,7 +132,7 @@ export default function Signup() {
               <button
                 type="button"
                 onClick={() => setShowPw((v) => !v)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-300 dark:hover:bg-slate-800"
                 aria-label={showPw ? "Hide password" : "Show password"}
               >
                 {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -151,7 +140,7 @@ export default function Signup() {
             </div>
             {password && (
               <div className="mt-2 flex items-center gap-2">
-                <div className="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                <div className="flex-1 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div
                     className={`h-full transition-all ${
                       strength.score <= 1
@@ -166,17 +155,17 @@ export default function Signup() {
                     }`}
                   />
                 </div>
-                <span className="text-xs text-slate-500 w-20 text-right">{strength.label}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 w-20 text-right">{strength.label}</span>
               </div>
             )}
           </div>
 
           <div>
-            <label htmlFor="confirm" className="block text-sm font-medium text-slate-700 mb-1.5">
+            <label htmlFor="confirm" className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
               Confirm password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
               <input
                 id="confirm"
                 type={showPw ? "text" : "password"}
@@ -193,7 +182,7 @@ export default function Signup() {
           </div>
 
           {issues.length > 0 && (
-            <ul className="text-xs text-rose-600 flex flex-col gap-1">
+            <ul className="text-xs text-rose-600 dark:text-rose-400 flex flex-col gap-1">
               {issues.map((m) => (
                 <li key={m}>• {m}</li>
               ))}
@@ -205,13 +194,13 @@ export default function Signup() {
           </button>
         </form>
 
-        <p className="mt-6 text-sm text-slate-500">
+        <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
           Already have an account?{" "}
-          <Link href="/login" className="text-brand-600 hover:text-brand-700 font-medium">
+          <Link href="/login" className="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 font-medium">
             Sign in
           </Link>
         </p>
-        <p className="mt-4 text-xs text-slate-400 leading-relaxed">
+        <p className="mt-4 text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
           By creating an account you agree to receive a one-time verification email at the address above.
           We store only a bcrypt hash of your password — never the plaintext.
         </p>

@@ -14,12 +14,12 @@ export default function HintPanel({ hints = [], onRequestHint, loading, disabled
     <div className="card p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-xl bg-amber-50 text-amber-600 grid place-items-center">
+          <div className="h-8 w-8 rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300 grid place-items-center">
             <Lightbulb className="h-4 w-4" strokeWidth={2} />
           </div>
           <div>
-            <div className="text-sm font-semibold text-slate-900">Hints</div>
-            <div className="text-xs text-slate-500">
+            <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">Hints</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">
               {hints.length
                 ? `Level ${hints.length} of 3 · escalates with each request`
                 : "Gentle nudges first, stronger scaffolding if needed"}
@@ -37,7 +37,7 @@ export default function HintPanel({ hints = [], onRequestHint, loading, disabled
       </div>
 
       {hints.length === 0 ? (
-        <div className="rounded-xl bg-slate-50 ring-1 ring-slate-100 p-4 text-sm text-slate-500">
+        <div className="rounded-xl bg-slate-50 ring-1 ring-slate-100 p-4 text-sm text-slate-500 dark:bg-slate-800/60 dark:ring-slate-700 dark:text-slate-400">
           Stuck? Ask for a hint. We'll start with a question and only reveal the approach if you need it.
         </div>
       ) : (
@@ -46,13 +46,13 @@ export default function HintPanel({ hints = [], onRequestHint, loading, disabled
             <li key={i} className="flex items-start gap-3 animate-fade-in">
               <span className={cn(
                 "shrink-0 h-6 w-6 rounded-full grid place-items-center text-xs font-semibold",
-                i === 0 ? "bg-emerald-100 text-emerald-700"
-                : i === 1 ? "bg-brand-100 text-brand-700"
-                : "bg-amber-100 text-amber-700",
+                i === 0 ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-200"
+                : i === 1 ? "bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-200"
+                : "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-200",
               )}>
                 L{i + 1}
               </span>
-              <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">{h}</p>
+              <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">{h}</p>
             </li>
           ))}
         </ul>

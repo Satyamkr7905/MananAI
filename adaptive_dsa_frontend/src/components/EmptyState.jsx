@@ -4,11 +4,11 @@ import { cn } from "@/utils/cn";
 export default function EmptyState({ title = "Nothing here yet", description, icon: Icon = Inbox, action, className }) {
   return (
     <div className={cn("card p-10 text-center flex flex-col items-center", className)}>
-      <div className="h-12 w-12 rounded-2xl bg-brand-50 text-brand-600 grid place-items-center">
+      <div className="h-12 w-12 rounded-2xl bg-brand-50 text-brand-600 dark:bg-brand-900/40 dark:text-brand-300 grid place-items-center">
         <Icon className="h-6 w-6" strokeWidth={1.75} />
       </div>
-      <h3 className="mt-4 text-base font-semibold text-slate-900">{title}</h3>
-      {description && <p className="mt-1 text-sm text-slate-500 max-w-md">{description}</p>}
+      <h3 className="mt-4 text-base font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
+      {description && <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 max-w-md">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   );

@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { Brain, Laptop, LogOut, Menu, Moon, Sun } from "lucide-react";
+import { Brain, LogOut, Menu, Moon, Sun } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/context/ThemeContext";
 
 /**
- * Navbar — top bar with brand mark, user pill, and sign-out.
+ * Navbar — top bar with brand mark, theme toggle, user pill, and sign-out.
  *
  * Mobile: exposes a menu button that the parent layout wires up to toggle
  * the Sidebar. Desktop hides the button.
@@ -13,25 +12,10 @@ import { useTheme } from "@/context/ThemeContext";
 export default function Navbar({ onMenuClick }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [preferMock, setPreferMock] = useState(false);
-  const canToggleDemo = Boolean((process.env.NEXT_PUBLIC_API_BASE || "").trim());
   const initial = (user?.name || user?.email || "?").trim()[0]?.toUpperCase();
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setPreferMock(localStorage.getItem("adt.preferMock") === "true");
-  }, []);
-
-  const toggleDemo = useCallback(() => {
-    const next = !preferMock;
-    setPreferMock(next);
-    if (next) localStorage.setItem("adt.preferMock", "true");
-    else localStorage.removeItem("adt.preferMock");
-    if (typeof window !== "undefined") window.dispatchEvent(new Event("adt-mock-changed"));
-  }, [preferMock]);
-
   return (
-    <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur ring-1 ring-slate-200/60 dark:ring-slate-800/80">
+    <header className="sticky top-0 z-30 bg-white/85 dark:bg-slate-950/85 backdrop-blur ring-1 ring-slate-200/60 dark:ring-slate-800/80">
       <div className="h-16 px-4 md:px-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
@@ -47,7 +31,7 @@ export default function Navbar({ onMenuClick }) {
               <Brain className="h-4.5 w-4.5" strokeWidth={2.25} />
             </div>
             <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Adaptive <span className="text-brand-600">DSA</span> Tutor
+              Adaptive <span className="text-brand-600 dark:text-brand-400">DSA</span> Tutor
             </span>
           </Link>
         </div>
@@ -56,23 +40,12 @@ export default function Navbar({ onMenuClick }) {
           <button
             type="button"
             onClick={toggleTheme}
-            className="btn-subtle !p-2 text-slate-600 dark:text-slate-300"
+            className="btn-subtle !p-2"
             aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
             title="Theme"
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
-          {canToggleDemo && (
-            <button
-              type="button"
-              onClick={toggleDemo}
-              className={`btn-subtle !py-1.5 !px-2 text-xs ${preferMock ? "text-amber-700 dark:text-amber-400" : "text-slate-600 dark:text-slate-400"}`}
-              title="Force local demo (OTP 123456, mock data)"
-            >
-              <Laptop className="h-3.5 w-3.5 inline mr-1 -mt-0.5" />
-              {preferMock ? "Demo" : "Live"}
-            </button>
-          )}
           {user && (
             <div className="hidden sm:flex items-center gap-2 pr-2">
               <div className="h-8 w-8 rounded-full bg-brand-50 text-brand-700 dark:bg-brand-900/50 dark:text-brand-200 grid place-items-center text-sm font-semibold">
