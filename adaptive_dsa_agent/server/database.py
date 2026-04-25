@@ -25,7 +25,22 @@ def _ensure_sqlite_parent(url: str) -> None:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
 
 
-_url = get_api_settings().database_url
+def _normalize_pg_url(url: str) -> str:
+    """Force SQLAlchemy to use psycopg v3 for Postgres.
+
+    Render, Heroku, Neon, etc. hand out ``postgres://...`` or
+    ``postgresql://...`` URLs. SQLAlchemy defaults to the legacy psycopg2
+    driver for those, which we don't install — leading to a startup crash.
+    Rewriting to ``postgresql+psycopg://...`` picks psycopg v3 explicitly.
+    """
+    if url.startswith("postgres://"):
+        return "postgresql+psycopg://" + url[len("postgres://") :]
+    if url.startswith("postgresql://") and "+psycopg" not in url.split("://", 1)[0]:
+        return "postgresql+psycopg://" + url[len("postgresql://") :]
+    return url
+
+
+_url = _normalize_pg_url(get_api_settings().database_url)
 _ensure_sqlite_parent(_url)
 
 _engine_kw: dict = {"pool_pre_ping": True}
