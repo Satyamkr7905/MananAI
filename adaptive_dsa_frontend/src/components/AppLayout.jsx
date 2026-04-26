@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import ProtectedRoute from "./ProtectedRoute";
+import NovaMascot from "./NovaMascot";
+import { useMascot } from "@/context/MascotContext";
 
 /**
  * AppLayout — the chrome shared by every authenticated page.
@@ -11,6 +14,23 @@ import ProtectedRoute from "./ProtectedRoute";
  */
 export default function AppLayout({ children, title, subtitle, actions }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
+  const { setMood, clearMood } = useMascot();
+
+  // Nova gives a friendly nod whenever the user lands on a new page. The
+  // greeting is short (2.5s) so it's never in the way.
+  useEffect(() => {
+    const greetings = {
+      "/dashboard": "Welcome back!",
+      "/practice":  "Let's practice!",
+      "/interview": "Interview mode — good luck!",
+      "/history":   "Here's your progress.",
+      "/analytics": "Let's review.",
+    };
+    const msg = greetings[router.pathname] || "";
+    if (msg) setMood("happy", msg, 2500);
+    else clearMood();
+  }, [router.pathname, setMood, clearMood]);
 
   return (
     <ProtectedRoute>
@@ -33,6 +53,7 @@ export default function AppLayout({ children, title, subtitle, actions }) {
             </div>
           </main>
         </div>
+        <NovaMascot />
       </div>
     </ProtectedRoute>
   );

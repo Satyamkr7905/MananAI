@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { CheckCircle2, XCircle, Info, Target } from "lucide-react";
 import { pct } from "@/utils/formatters";
 import { cn } from "@/utils/cn";
 import ProgressBar from "./ProgressBar";
+import { useMascot } from "@/context/MascotContext";
 
 // FeedbackBox — shows the evaluator's verdict after the user submits.
 // backend shape: { correct, score, error_type, matched, missed, notes }
@@ -25,6 +27,25 @@ function leadMessage(correct, score) {
 }
 
 export default function FeedbackBox({ result }) {
+  const { setMood } = useMascot();
+
+  // React to each new submission: the mascot celebrates a win, shows a
+  // "thinking" nudge for partial answers, and mourns a miss.
+  useEffect(() => {
+    if (!result) return;
+    if (result.correct) {
+      if ((result.score ?? 0) >= 0.85) {
+        setMood("excited", "You crushed it!");
+      } else {
+        setMood("happy", "Nice — main idea locked in!");
+      }
+    } else if ((result.score ?? 0) >= 0.35) {
+      setMood("thinking", "So close — one more piece to add.");
+    } else {
+      setMood("sad", "Let's figure this one out together.");
+    }
+  }, [result, setMood]);
+
   if (!result) return null;
   const {
     correct,

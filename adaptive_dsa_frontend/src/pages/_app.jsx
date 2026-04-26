@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { MascotProvider } from "@/context/MascotContext";
 
 // next/font loads Inter locally, no CLS, exposed as a CSS var Tailwind reads.
 const inter = Inter({
@@ -48,6 +49,7 @@ export default function App({ Component, pageProps }) {
   const tree = (
     <ThemeProvider>
     <AuthProvider>
+      <MascotProvider>
       <Head>
         <title>DSA By NOVA</title>
         <meta name="description" content="DSA By NOVA — an adaptive, decision-driven tutor for Data Structures & Algorithms." />
@@ -70,6 +72,7 @@ export default function App({ Component, pageProps }) {
           }}
         />
       </div>
+      </MascotProvider>
     </AuthProvider>
     </ThemeProvider>
   );
