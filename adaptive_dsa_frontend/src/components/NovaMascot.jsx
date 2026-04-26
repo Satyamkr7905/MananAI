@@ -11,9 +11,15 @@
 // transforms. Double-click to hide for the session. Re-mount or clear
 // sessionStorage key "novaHidden" to bring it back.
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { useMascot } from "@/context/MascotContext";
+
+const BOT_W = 96;
+const BOT_H = 140;
+const EDGE_MARGIN = 24;
+const TOP_SAFE = 80;
+const BOTTOM_SAFE = 24;
 
 const MOOD_CONFIG = {
   neutral: {
@@ -48,21 +54,45 @@ const MOOD_CONFIG = {
   },
 };
 
-// Translation offsets relative to the default bottom-right anchor. Nova
-// shuffles between these to feel alive during idle moments.
-const PARK_SPOTS = [
-  { x: 0, y: 0 },
-  { x: -220, y: -20 },
-  { x: -520, y: 0 },
-  { x: -120, y: -160 },
-  { x: -380, y: -200 },
-];
+// Returns an absolute {x, y} somewhere inside the viewport, avoiding the
+// navbar strip at the top and a small safety margin on all edges.
+function randomSpot() {
+  if (typeof window === "undefined") return { x: EDGE_MARGIN, y: TOP_SAFE };
+  const maxX = Math.max(EDGE_MARGIN, window.innerWidth - BOT_W - EDGE_MARGIN);
+  const maxY = Math.max(TOP_SAFE + 1, window.innerHeight - BOT_H - BOTTOM_SAFE);
+  const x = Math.floor(EDGE_MARGIN + Math.random() * Math.max(1, maxX - EDGE_MARGIN));
+  const y = Math.floor(TOP_SAFE + Math.random() * Math.max(1, maxY - TOP_SAFE));
+  return { x, y };
+}
+
+function cornerSpot() {
+  // Bottom-right spotlight used when Nova reacts to an event.
+  if (typeof window === "undefined") return { x: EDGE_MARGIN, y: TOP_SAFE };
+  return {
+    x: Math.max(EDGE_MARGIN, window.innerWidth - BOT_W - EDGE_MARGIN),
+    y: Math.max(TOP_SAFE, window.innerHeight - BOT_H - BOTTOM_SAFE),
+  };
+}
 
 export default function NovaMascot() {
   const { mood, message } = useMascot();
-  const [pos, setPos] = useState(PARK_SPOTS[0]);
+  const [pos, setPos] = useState({ x: EDGE_MARGIN, y: TOP_SAFE });
   const [hidden, setHidden] = useState(false);
   const wanderRef = useRef(null);
+
+  // Initial spot + keep mascot on-screen when the viewport resizes.
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    setPos(cornerSpot());
+    const onResize = () => {
+      setPos((p) => ({
+        x: Math.min(p.x, Math.max(EDGE_MARGIN, window.innerWidth - BOT_W - EDGE_MARGIN)),
+        y: Math.min(p.y, Math.max(TOP_SAFE, window.innerHeight - BOT_H - BOTTOM_SAFE)),
+      }));
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   // Restore dismiss-per-session.
   useEffect(() => {
@@ -70,18 +100,20 @@ export default function NovaMascot() {
     if (sessionStorage.getItem("novaHidden") === "1") setHidden(true);
   }, []);
 
-  // Idle wander: only while neutral/thinking so active moods stay spotlit.
+  const snapToCorner = useCallback(() => setPos(cornerSpot()), []);
+
+  // Idle wander: only while neutral/thinking. Nova drifts to a fresh random
+  // point anywhere in the viewport every ~6 seconds so it feels alive.
   useEffect(() => {
     if (mood !== "neutral" && mood !== "thinking") {
-      setPos(PARK_SPOTS[0]);
+      snapToCorner();
       return undefined;
     }
     wanderRef.current = setInterval(() => {
-      const next = PARK_SPOTS[Math.floor(Math.random() * PARK_SPOTS.length)];
-      setPos(next);
-    }, 7500);
+      setPos(randomSpot());
+    }, 6000);
     return () => clearInterval(wanderRef.current);
-  }, [mood]);
+  }, [mood, snapToCorner]);
 
   if (hidden) return null;
 
@@ -96,10 +128,11 @@ export default function NovaMascot() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed bottom-4 right-4 z-[60] select-none"
+      className="pointer-events-none fixed top-0 left-0 z-[60] select-none"
       style={{
         transform: `translate(${pos.x}px, ${pos.y}px)`,
-        transition: "transform 1.4s cubic-bezier(.22,1,.36,1)",
+        transition: "transform 2s cubic-bezier(.22,1,.36,1)",
+        willChange: "transform",
       }}
     >
       {bubble && (
@@ -119,7 +152,11 @@ export default function NovaMascot() {
         </div>
       )}
 
-      <div className="relative pointer-events-auto group" title="Double-click to hide">
+      <div
+        className="relative pointer-events-auto group"
+        title="Double-click to hide"
+        style={{ width: BOT_W, height: BOT_H }}
+      >
         {cfg.emoji && (
           <div className="absolute -top-3 -left-3 text-2xl animate-fade-in drop-shadow-sm">
             {cfg.emoji}
@@ -131,23 +168,26 @@ export default function NovaMascot() {
           onClick={dismiss}
           className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-slate-900/70 text-white
                      opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center
-                     ring-1 ring-black/10"
+                     ring-1 ring-black/10 z-10"
           aria-label="Hide Nova"
         >
           <X className="h-3 w-3" />
         </button>
 
+        {/* mix-blend-mode: screen erases the PNG's black background on any
+            light or dark surface while keeping the bot's colors intact. */}
         <img
           src="/nova-bot.png"
           alt="Nova"
           draggable={false}
           onDoubleClick={dismiss}
           style={{
-            width: 96,
-            height: 140,
+            width: BOT_W,
+            height: BOT_H,
             objectFit: "contain",
             animation: cfg.animation,
             filter: cfg.filter,
+            mixBlendMode: "screen",
             transformOrigin: "50% 85%",
           }}
         />
