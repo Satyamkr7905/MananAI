@@ -111,11 +111,16 @@ export const getNextQuestion = (opts = {}) => {
   params.set("topic", opts.topic ?? "all");
   if (opts.difficulty && opts.difficulty !== "all") params.set("difficulty", String(opts.difficulty));
   if (opts.excludeIds?.length) params.set("excludeIds", opts.excludeIds.join(","));
+  if (opts.mode) params.set("mode", String(opts.mode));
   return request(`/questions/next?${params.toString()}`);
 };
 
-export const submitAnswer = ({ questionId, answer, hintsUsed }) =>
-  request("/submit-answer", { method: "POST", body: { questionId, answer, hintsUsed } });
+export const submitAnswer = ({ questionId, answer, hintsUsed, selfConfidence, mode }) =>
+  request("/submit-answer", { method: "POST", body: { questionId, answer, hintsUsed, selfConfidence, mode } });
 
-export const getHint = ({ questionId, level }) =>
-  request(`/questions/${questionId}/hint?level=${level}`);
+export const getHint = ({ questionId, level, mode }) => {
+  const params = new URLSearchParams();
+  params.set("level", String(level));
+  if (mode) params.set("mode", String(mode));
+  return request(`/questions/${questionId}/hint?${params.toString()}`);
+};

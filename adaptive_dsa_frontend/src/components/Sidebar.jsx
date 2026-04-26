@@ -1,13 +1,24 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { BarChart3, GraduationCap, History, LayoutDashboard, X } from "lucide-react";
+import { BarChart3, BriefcaseBusiness, GraduationCap, History, LayoutDashboard, X } from "lucide-react";
 import { cn } from "@/utils/cn";
 
-const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/practice",  label: "Practice",  icon: GraduationCap },
-  { href: "/history",   label: "History",   icon: History },
-  { href: "/analytics", label: "Analytics", icon: BarChart3 },
+const NAV_SECTIONS = [
+  {
+    title: "Learning",
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/practice", label: "Practice", icon: GraduationCap },
+      { href: "/history", label: "History", icon: History },
+      { href: "/analytics", label: "Analytics", icon: BarChart3 },
+    ],
+  },
+  {
+    title: "Interview",
+    items: [
+      { href: "/interview", label: "Interview Mode", icon: BriefcaseBusiness },
+    ],
+  },
 ];
 
 /**
@@ -22,32 +33,41 @@ export default function Sidebar({ open = false, onClose }) {
 
   const items = (
     <nav className="px-3 py-4 flex flex-col gap-1">
-      {NAV.map(({ href, label, icon: Icon }) => {
-        const active = isActive(href);
-        return (
-          <Link
-            key={href}
-            href={href}
-            onClick={onClose}
-            className={cn(
-              "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-              active
-                ? "bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-slate-100 dark:hover:bg-slate-800",
-            )}
-          >
-            <Icon
-              className={cn(
-                "h-4.5 w-4.5",
-                active
-                  ? "text-brand-600 dark:text-brand-300"
-                  : "text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300",
-              )}
-            />
-            {label}
-          </Link>
-        );
-      })}
+      {NAV_SECTIONS.map((section) => (
+        <div key={section.title} className="mb-2">
+          <div className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+            {section.title}
+          </div>
+          <div className="flex flex-col gap-1">
+            {section.items.map(({ href, label, icon: Icon }) => {
+              const active = isActive(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={onClose}
+                  className={cn(
+                    "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                    active
+                      ? "bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-slate-100 dark:hover:bg-slate-800",
+                  )}
+                >
+                  <Icon
+                    className={cn(
+                      "h-4.5 w-4.5",
+                      active
+                        ? "text-brand-600 dark:text-brand-300"
+                        : "text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300",
+                    )}
+                  />
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </nav>
   );
 

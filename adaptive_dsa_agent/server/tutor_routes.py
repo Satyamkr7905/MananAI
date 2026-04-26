@@ -105,12 +105,13 @@ def next_question(
     topic: str | None = None,
     difficulty: str | None = None,
     excludeIds: str | None = None,
+    mode: str | None = None,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_session),
 ):
     ensure_learning_row(db, user)
     ex = [x.strip() for x in excludeIds.split(",") if x.strip()] if excludeIds else []
-    q = get_tutor().next_question(db, user, topic=topic, difficulty=difficulty, exclude_ids=ex)
+    q = get_tutor().next_question(db, user, topic=topic, difficulty=difficulty, exclude_ids=ex, mode=mode)
     if q is None:
         return None
     return q
@@ -121,6 +122,7 @@ class SubmitBody(BaseModel):
     answer: str = ""
     hintsUsed: int = Field(0, ge=0)
     selfConfidence: int | None = Field(default=None, ge=0, le=100)
+    mode: str | None = None
 
 
 @router.post("/submit-answer")
@@ -138,6 +140,7 @@ def submit_answer(
             answer=body.answer,
             hints_used=body.hintsUsed,
             self_confidence=body.selfConfidence,
+            mode=body.mode,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -159,12 +162,13 @@ def analytics(user: User = Depends(get_current_user), db: Session = Depends(get_
 def question_hint(
     question_id: str,
     level: int = 1,
+    mode: str | None = None,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_session),
 ):
     ensure_learning_row(db, user)
     try:
-        text = get_tutor().hint(db, user, question_id, level)
+        text = get_tutor().hint(db, user, question_id, level, mode=mode)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     lv = max(1, min(3, int(level)))

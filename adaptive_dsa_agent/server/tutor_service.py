@@ -64,6 +64,10 @@ def _calibration_band(error: float) -> str:
     return "poorly_calibrated"
 
 
+def _is_interview_mode(mode: str | None) -> bool:
+    return (mode or "").strip().lower() == "interview"
+
+
 class TutorRuntime:
     # process-global bank + selector (read-only). hints are stateless per request.
 
@@ -96,6 +100,7 @@ class TutorRuntime:
         topic: str | None,
         difficulty: str | None,
         exclude_ids: list[str] | None,
+        mode: str | None = None,
     ) -> dict[str, Any] | None:
         row = db.get(UserLearningState, user.id)
         if row is None:
@@ -110,6 +115,9 @@ class TutorRuntime:
                 fd = int(difficulty)
             except ValueError:
                 fd = None
+        if _is_interview_mode(mode) and fd is None:
+            # Interview rounds default to medium if no explicit level is requested.
+            fd = 3
 
         req_topic = (topic or "all").strip() or "all"
         sel = self.selector.select(state, req_topic, exclude_ids=ex, fixed_difficulty=fd)
@@ -121,7 +129,12 @@ class TutorRuntime:
         db.add(row)
         db.commit()
 
-        return _strip_question(sel.question, sel.reason)
+        reason = None if _is_interview_mode(mode) else sel.reason
+        out = _strip_question(sel.question, reason)
+        if _is_interview_mode(mode):
+            out["mode"] = "interview"
+            out["interviewPrompt"] = "Explain approach, complexity, and edge cases."
+        return out
 
     def submit(
         self,
@@ -132,6 +145,7 @@ class TutorRuntime:
         answer: str,
         hints_used: int,
         self_confidence: int | None = None,
+        mode: str | None = None,
     ) -> dict[str, Any]:
         row = db.get(UserLearningState, user.id)
         if row is None:
@@ -157,14 +171,20 @@ class TutorRuntime:
 
         t0 = time.perf_counter()
         eval_result = self.evaluator.evaluate(q, answer or "")
+        interview_mode = _is_interview_mode(mode)
+        if interview_mode:
+            # Interview mode is deliberately stricter than practice mode.
+            interview_correct = float(eval_result.get("score", 0.0)) >= 0.70
+            eval_result = {**eval_result, "correct": interview_correct}
         elapsed = time.perf_counter() - t0
         confidence_norm = _confidence_to_unit_scale(self_confidence)
+        effective_hints_used = 0 if interview_mode else int(hints_used)
 
         sm.register_attempt(
             question=q,
             user_answer=answer or "",
             evaluator_result=eval_result,
-            hints_used=int(hints_used),
+            hints_used=effective_hints_used,
             elapsed_seconds=elapsed,
             self_confidence=confidence_norm,
         )
@@ -179,7 +199,7 @@ class TutorRuntime:
 
         solved = _solved_list(row)
         correct = bool(eval_result.get("correct"))
-        if correct and attempts_on_q == 1 and int(hints_used) == 0 and question_id not in solved:
+        if correct and attempts_on_q == 1 and effective_hints_used == 0 and question_id not in solved:
             solved.append(question_id)
             row.solved_first_try_json = json.dumps(solved)
 
@@ -193,7 +213,8 @@ class TutorRuntime:
                         "correct": bool(eval_result.get("correct")),
                         "score": eval_result.get("score"),
                         "error_type": eval_result.get("error_type"),
-                        "hintsUsed": int(hints_used),
+                        "hintsUsed": effective_hints_used,
+                        "mode": "interview" if interview_mode else "practice",
                         "attemptsOnQuestion": attempts_on_q,
                         "selfConfidence": confidence_norm,
                         "calibrationError": (
@@ -227,6 +248,7 @@ class TutorRuntime:
             "questionId": question_id,
             "calibration": calibration,
             "counterfactual": counterfactual,
+            "mode": "interview" if interview_mode else "practice",
         }
 
     def hint(
@@ -236,7 +258,10 @@ class TutorRuntime:
         question_id: str,
         level: int,
         last_answer: str = "",
+        mode: str | None = None,
     ) -> str:
+        if _is_interview_mode(mode):
+            raise ValueError("Hints are disabled in interview mode.")
         row = db.get(UserLearningState, user.id)
         state = _load_state(row, user) if row else UserState(user_id=user.id)
         q = self.bank.get(question_id)
