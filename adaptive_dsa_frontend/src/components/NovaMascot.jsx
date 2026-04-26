@@ -103,15 +103,19 @@ export default function NovaMascot() {
   const snapToCorner = useCallback(() => setPos(cornerSpot()), []);
 
   // Idle wander: only while neutral/thinking. Nova drifts to a fresh random
-  // point anywhere in the viewport every ~6 seconds so it feels alive.
+  // point anywhere in the viewport. The interval (4.5s) is tuned to be
+  // slightly shorter than the CSS transition (5s) so Nova is almost always
+  // gliding — never teleporting, never sitting perfectly still for long.
   useEffect(() => {
     if (mood !== "neutral" && mood !== "thinking") {
       snapToCorner();
       return undefined;
     }
+    // Kick off a move immediately so Nova doesn't idle for 4.5s on mount.
+    setPos(randomSpot());
     wanderRef.current = setInterval(() => {
       setPos(randomSpot());
-    }, 6000);
+    }, 4500);
     return () => clearInterval(wanderRef.current);
   }, [mood, snapToCorner]);
 
@@ -130,9 +134,12 @@ export default function NovaMascot() {
       aria-hidden
       className="pointer-events-none fixed top-0 left-0 z-[60] select-none"
       style={{
-        transform: `translate(${pos.x}px, ${pos.y}px)`,
-        transition: "transform 2s cubic-bezier(.22,1,.36,1)",
+        // translate3d forces GPU compositing so the glide stays at 60fps
+        // even when the main thread is busy rendering charts/tables.
+        transform: `translate3d(${pos.x}px, ${pos.y}px, 0)`,
+        transition: "transform 5s cubic-bezier(.45, 0, .35, 1)",
         willChange: "transform",
+        backfaceVisibility: "hidden",
       }}
     >
       {bubble && (
@@ -174,8 +181,6 @@ export default function NovaMascot() {
           <X className="h-3 w-3" />
         </button>
 
-        {/* mix-blend-mode: screen erases the PNG's black background on any
-            light or dark surface while keeping the bot's colors intact. */}
         <img
           src="/nova-bot.png"
           alt="Nova"
@@ -187,7 +192,6 @@ export default function NovaMascot() {
             objectFit: "contain",
             animation: cfg.animation,
             filter: cfg.filter,
-            mixBlendMode: "screen",
             transformOrigin: "50% 85%",
           }}
         />
