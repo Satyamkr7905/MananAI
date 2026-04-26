@@ -10,5 +10,59 @@
     "description": "Solving problems by combining optimal sub-solutions; memoization and tabulation.",
     "prerequisites": ["arrays"],
     "common_pitfalls": ["base_case_issue", "state_definition", "time_complexity_issue"]
+  },
+  "linked_lists": {
+    "display_name": "Linked Lists",
+    "description": "Sequential node-based data structures: traversal, insertion, deletion, cycle detection, reversal.",
+    "prerequisites": [],
+    "common_pitfalls": ["null_pointer", "lost_reference", "off_by_one"]
+  },
+  "trees": {
+    "display_name": "Trees & Binary Search Trees",
+    "description": "Hierarchical structures: traversals (in/pre/post/level), BST properties, recursion on subtrees.",
+    "prerequisites": ["linked_lists"],
+    "common_pitfalls": ["null_child", "wrong_traversal_order", "base_case_issue"]
+  },
+  "stacks_queues": {
+    "display_name": "Stacks & Queues",
+    "description": "LIFO and FIFO structures: monotonic stacks, BFS with queues, expression evaluation.",
+    "prerequisites": ["arrays"],
+    "common_pitfalls": ["empty_stack_pop", "wrong_data_structure", "off_by_one"]
+  },
+  "graphs": {
+    "display_name": "Graphs",
+    "description": "Vertices and edges: BFS, DFS, topological sort, shortest paths, connected components.",
+    "prerequisites": ["stacks_queues", "trees"],
+    "common_pitfalls": ["missing_visited_check", "wrong_traversal", "cycle_in_directed"]
+  },
+  "sorting_searching": {
+    "display_name": "Sorting & Searching",
+    "description": "Comparison and non-comparison sorts, binary search and its variations, partitioning schemes.",
+    "prerequisites": ["arrays"],
+    "common_pitfalls": ["off_by_one", "wrong_mid_calculation", "unstable_sort"]
+  },
+  "strings": {
+    "display_name": "Strings",
+    "description": "Character manipulation, pattern matching, anagram detection, palindrome checks, and substring problems.",
+    "prerequisites": ["arrays"],
+    "common_pitfalls": ["immutable_strings", "off_by_one", "unicode_handling"]
+  },
+  "hashing": {
+    "display_name": "Hashing & Hash Maps",
+    "description": "Frequency counting, two-sum variants, grouping by key, collision handling, and set operations.",
+    "prerequisites": ["arrays"],
+    "common_pitfalls": ["collision_handling", "missing_key", "wrong_hash_function"]
+  },
+  "recursion_backtracking": {
+    "display_name": "Recursion & Backtracking",
+    "description": "Divide-and-conquer, generating permutations/combinations, constraint-based search, and pruning.",
+    "prerequisites": ["arrays", "stacks_queues"],
+    "common_pitfalls": ["missing_base_case", "no_pruning", "wrong_state_restore"]
+  },
+  "heaps": {
+    "display_name": "Heaps & Priority Queues",
+    "description": "Min/max heaps, top-K problems, median maintenance, and priority-based scheduling.",
+    "prerequisites": ["arrays", "sorting_searching"],
+    "common_pitfalls": ["wrong_heap_type", "missing_heapify", "off_by_one"]
   }
 }

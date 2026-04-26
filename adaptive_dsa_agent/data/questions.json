@@ -113,6 +113,28 @@
     "expected_keywords": ["left", "right", "max", "two pointer", "trap", "water"],
     "time_budget_seconds": 600
   },
+  {
+    "id": "arr_009",
+    "topic": "arrays",
+    "difficulty": 2,
+    "title": "Rotate Array",
+    "description": "Rotate an array to the right by k steps in-place.",
+    "solution": "Reverse entire array, reverse first k elements, reverse remaining. O(n) time, O(1) space.",
+    "tags": ["in_place", "reverse"],
+    "expected_keywords": ["reverse", "rotate", "k", "mod", "in-place"],
+    "time_budget_seconds": 180
+  },
+  {
+    "id": "arr_010",
+    "topic": "arrays",
+    "difficulty": 3,
+    "title": "Product of Array Except Self",
+    "description": "Return an array where each element is the product of all other elements, without using division.",
+    "solution": "Two passes: prefix products left-to-right, then suffix products right-to-left. O(n) time, O(1) extra space.",
+    "tags": ["prefix", "suffix"],
+    "expected_keywords": ["prefix", "suffix", "product", "left", "right"],
+    "time_budget_seconds": 300
+  },
 
   {
     "id": "dp_001",
@@ -227,5 +249,810 @@
     "tags": ["2d_dp", "base_case", "hard"],
     "expected_keywords": ["dp", "insert", "delete", "replace", "min", "i-1", "j-1"],
     "time_budget_seconds": 720
+  },
+  {
+    "id": "dp_009",
+    "topic": "dp",
+    "difficulty": 3,
+    "title": "Unique Paths",
+    "description": "A robot on an m x n grid can only move right or down. Count the number of unique paths from top-left to bottom-right.",
+    "solution": "dp[i][j] = dp[i-1][j] + dp[i][j-1]. Base: first row and first column are all 1. O(m*n).",
+    "tags": ["2d_dp", "base_case"],
+    "expected_keywords": ["dp", "grid", "right", "down", "i-1", "j-1"],
+    "time_budget_seconds": 300
+  },
+
+  {
+    "id": "ll_001",
+    "topic": "linked_lists",
+    "difficulty": 1,
+    "title": "Traverse a Linked List",
+    "description": "Given the head of a singly linked list, return the values of all nodes in order.",
+    "solution": "Start at head, iterate with curr = curr.next until null, collecting values. O(n).",
+    "tags": ["traversal", "basic"],
+    "expected_keywords": ["head", "next", "null", "loop", "traverse"],
+    "time_budget_seconds": 60
+  },
+  {
+    "id": "ll_002",
+    "topic": "linked_lists",
+    "difficulty": 1,
+    "title": "Find Length of Linked List",
+    "description": "Count the number of nodes in a singly linked list.",
+    "solution": "Initialize count = 0, traverse from head to null incrementing count. O(n).",
+    "tags": ["traversal", "counting"],
+    "expected_keywords": ["count", "head", "next", "null", "length"],
+    "time_budget_seconds": 60
+  },
+  {
+    "id": "ll_003",
+    "topic": "linked_lists",
+    "difficulty": 2,
+    "title": "Reverse a Linked List",
+    "description": "Reverse a singly linked list in-place and return the new head.",
+    "solution": "Use three pointers: prev=null, curr=head, next. Iterate: next=curr.next, curr.next=prev, prev=curr, curr=next. Return prev.",
+    "tags": ["reversal", "three_pointer"],
+    "expected_keywords": ["prev", "curr", "next", "reverse", "null"],
+    "time_budget_seconds": 180
+  },
+  {
+    "id": "ll_004",
+    "topic": "linked_lists",
+    "difficulty": 2,
+    "title": "Middle of the Linked List",
+    "description": "Return the middle node of a singly linked list. If two middle nodes, return the second.",
+    "solution": "Slow and fast pointer: slow moves 1 step, fast moves 2 steps. When fast reaches end, slow is at middle.",
+    "tags": ["two_pointer", "slow_fast"],
+    "expected_keywords": ["slow", "fast", "middle", "pointer", "two"],
+    "time_budget_seconds": 120
+  },
+  {
+    "id": "ll_005",
+    "topic": "linked_lists",
+    "difficulty": 3,
+    "title": "Detect Cycle in Linked List",
+    "description": "Given a linked list, determine if it has a cycle.",
+    "solution": "Floyd's cycle detection: slow moves 1 step, fast moves 2 steps. If they meet, cycle exists. O(n) time, O(1) space.",
+    "tags": ["cycle_detection", "slow_fast"],
+    "expected_keywords": ["slow", "fast", "cycle", "floyd", "meet"],
+    "time_budget_seconds": 240
+  },
+  {
+    "id": "ll_006",
+    "topic": "linked_lists",
+    "difficulty": 3,
+    "title": "Merge Two Sorted Lists",
+    "description": "Merge two sorted linked lists into one sorted linked list.",
+    "solution": "Use a dummy head. Compare both lists' current nodes, attach smaller, advance. Attach remaining tail at end. O(n+m).",
+    "tags": ["merge", "dummy_node"],
+    "expected_keywords": ["dummy", "merge", "compare", "next", "sorted"],
+    "time_budget_seconds": 240
+  },
+  {
+    "id": "ll_007",
+    "topic": "linked_lists",
+    "difficulty": 4,
+    "title": "Remove N-th Node From End",
+    "description": "Remove the n-th node from the end of a linked list and return its head.",
+    "solution": "Two-pointer gap technique: advance first pointer n steps, then move both until first reaches end. Delete. Use dummy node for edge cases.",
+    "tags": ["two_pointer", "dummy_node"],
+    "expected_keywords": ["gap", "two pointer", "n", "dummy", "end"],
+    "time_budget_seconds": 300
+  },
+
+  {
+    "id": "tree_001",
+    "topic": "trees",
+    "difficulty": 1,
+    "title": "Maximum Depth of Binary Tree",
+    "description": "Return the maximum depth (height) of a binary tree.",
+    "solution": "Recursion: if null return 0, else 1 + max(depth(left), depth(right)). O(n).",
+    "tags": ["recursion", "base_case"],
+    "expected_keywords": ["recursion", "max", "depth", "left", "right", "null"],
+    "time_budget_seconds": 90
+  },
+  {
+    "id": "tree_002",
+    "topic": "trees",
+    "difficulty": 1,
+    "title": "Inorder Traversal",
+    "description": "Return the inorder traversal of a binary tree's nodes' values.",
+    "solution": "Recursively visit left subtree, current node, right subtree. Or use an explicit stack iteratively.",
+    "tags": ["traversal", "recursion"],
+    "expected_keywords": ["inorder", "left", "root", "right", "stack", "recursion"],
+    "time_budget_seconds": 90
+  },
+  {
+    "id": "tree_003",
+    "topic": "trees",
+    "difficulty": 2,
+    "title": "Symmetric Tree",
+    "description": "Check whether a binary tree is a mirror of itself (symmetric around its center).",
+    "solution": "Write a helper isMirror(t1, t2): both null -> true, one null -> false, check t1.val==t2.val and isMirror(t1.left, t2.right) and isMirror(t1.right, t2.left).",
+    "tags": ["recursion", "mirror"],
+    "expected_keywords": ["mirror", "symmetric", "left", "right", "recursion", "null"],
+    "time_budget_seconds": 180
+  },
+  {
+    "id": "tree_004",
+    "topic": "trees",
+    "difficulty": 2,
+    "title": "Level Order Traversal",
+    "description": "Return the level order traversal of a binary tree (values grouped by level).",
+    "solution": "BFS with a queue. Process all nodes at current level before moving to next. Track level size. O(n).",
+    "tags": ["bfs", "queue"],
+    "expected_keywords": ["queue", "level", "bfs", "size", "append"],
+    "time_budget_seconds": 180
+  },
+  {
+    "id": "tree_005",
+    "topic": "trees",
+    "difficulty": 3,
+    "title": "Validate Binary Search Tree",
+    "description": "Determine if a binary tree is a valid BST.",
+    "solution": "Recursion with min/max bounds: validate(node, low, high). Left child must be in (low, node.val), right in (node.val, high). Or do inorder and check sorted.",
+    "tags": ["bst", "recursion", "bounds"],
+    "expected_keywords": ["bst", "valid", "min", "max", "bounds", "inorder"],
+    "time_budget_seconds": 300
+  },
+  {
+    "id": "tree_006",
+    "topic": "trees",
+    "difficulty": 3,
+    "title": "Lowest Common Ancestor",
+    "description": "Find the lowest common ancestor of two nodes in a binary tree.",
+    "solution": "If root is null or matches p or q, return root. Recurse left and right. If both non-null, root is LCA. Else return whichever is non-null.",
+    "tags": ["recursion", "lca"],
+    "expected_keywords": ["lca", "ancestor", "left", "right", "recursion", "null"],
+    "time_budget_seconds": 300
+  },
+  {
+    "id": "tree_007",
+    "topic": "trees",
+    "difficulty": 4,
+    "title": "Serialize and Deserialize Binary Tree",
+    "description": "Design an algorithm to serialize a binary tree to a string and deserialize it back.",
+    "solution": "Preorder traversal with null markers. Serialize: root.val + ',' + ser(left) + ser(right). Deserialize: read tokens, reconstruct recursively.",
+    "tags": ["design", "preorder", "recursion"],
+    "expected_keywords": ["serialize", "deserialize", "preorder", "null", "marker", "queue"],
+    "time_budget_seconds": 480
+  },
+  {
+    "id": "tree_008",
+    "topic": "trees",
+    "difficulty": 2,
+    "title": "Invert Binary Tree",
+    "description": "Invert a binary tree (mirror it) so that left and right children are swapped at every node.",
+    "solution": "Recursion: swap left and right children, then recurse on both. Base case: null node returns null. O(n).",
+    "tags": ["recursion", "swap"],
+    "expected_keywords": ["invert", "swap", "left", "right", "recursion", "mirror"],
+    "time_budget_seconds": 120
+  },
+
+  {
+    "id": "sq_001",
+    "topic": "stacks_queues",
+    "difficulty": 1,
+    "title": "Valid Parentheses",
+    "description": "Given a string containing just '(', ')', '{', '}', '[', ']', determine if the input string is valid.",
+    "solution": "Use a stack: push opening brackets, pop on closing and check match. At end, stack must be empty. O(n).",
+    "tags": ["stack", "matching"],
+    "expected_keywords": ["stack", "push", "pop", "match", "empty", "bracket"],
+    "time_budget_seconds": 120
+  },
+  {
+    "id": "sq_002",
+    "topic": "stacks_queues",
+    "difficulty": 1,
+    "title": "Implement Queue Using Stacks",
+    "description": "Implement a FIFO queue using only two stacks.",
+    "solution": "Use two stacks: push to stack1. For pop/peek, if stack2 empty, transfer all from stack1 to stack2. Amortized O(1).",
+    "tags": ["stack", "queue", "design"],
+    "expected_keywords": ["stack", "two", "push", "pop", "transfer", "amortized"],
+    "time_budget_seconds": 180
+  },
+  {
+    "id": "sq_003",
+    "topic": "stacks_queues",
+    "difficulty": 2,
+    "title": "Min Stack",
+    "description": "Design a stack that supports push, pop, top, and retrieving the minimum element in constant time.",
+    "solution": "Maintain a parallel stack tracking the current min. On push, push min(val, current_min). O(1) all operations.",
+    "tags": ["stack", "design", "tracking"],
+    "expected_keywords": ["min", "stack", "push", "pop", "parallel", "constant"],
+    "time_budget_seconds": 180
+  },
+  {
+    "id": "sq_004",
+    "topic": "stacks_queues",
+    "difficulty": 2,
+    "title": "Evaluate Reverse Polish Notation",
+    "description": "Evaluate the value of an arithmetic expression in Reverse Polish Notation (postfix).",
+    "solution": "Iterate tokens: numbers push to stack, operators pop two operands, compute, push result. Final stack top is answer.",
+    "tags": ["stack", "expression"],
+    "expected_keywords": ["stack", "operand", "operator", "push", "pop", "postfix"],
+    "time_budget_seconds": 180
+  },
+  {
+    "id": "sq_005",
+    "topic": "stacks_queues",
+    "difficulty": 3,
+    "title": "Daily Temperatures",
+    "description": "Given daily temperatures, return how many days you must wait for a warmer temperature. Return 0 if no future warmer day.",
+    "solution": "Monotonic decreasing stack of indices. Pop when current temp > stack top's temp, compute difference. O(n).",
+    "tags": ["monotonic_stack", "index"],
+    "expected_keywords": ["monotonic", "stack", "decreasing", "index", "pop", "warmer"],
+    "time_budget_seconds": 300
+  },
+  {
+    "id": "sq_006",
+    "topic": "stacks_queues",
+    "difficulty": 4,
+    "title": "Largest Rectangle in Histogram",
+    "description": "Given an array of bar heights, find the area of the largest rectangle in the histogram.",
+    "solution": "Monotonic increasing stack. For each bar, pop while stack top >= current; compute width using index difference. O(n).",
+    "tags": ["monotonic_stack", "hard"],
+    "expected_keywords": ["stack", "monotonic", "height", "width", "area", "pop", "index"],
+    "time_budget_seconds": 480
+  },
+  {
+    "id": "sq_007",
+    "topic": "stacks_queues",
+    "difficulty": 3,
+    "title": "Sliding Window Maximum",
+    "description": "Given an array and window size k, return the max element in each sliding window position.",
+    "solution": "Use a deque (monotonic decreasing). Remove smaller elements from back, remove out-of-window from front. Front is always max. O(n).",
+    "tags": ["deque", "sliding_window", "monotonic"],
+    "expected_keywords": ["deque", "monotonic", "window", "max", "front", "back"],
+    "time_budget_seconds": 360
+  },
+
+  {
+    "id": "graph_001",
+    "topic": "graphs",
+    "difficulty": 1,
+    "title": "Number of Islands",
+    "description": "Given a 2D grid of '1's (land) and '0's (water), count the number of islands.",
+    "solution": "Iterate grid, on finding '1' do BFS/DFS to mark all connected land as visited. Increment count. O(m*n).",
+    "tags": ["bfs", "dfs", "grid"],
+    "expected_keywords": ["bfs", "dfs", "visited", "grid", "island", "count"],
+    "time_budget_seconds": 240
+  },
+  {
+    "id": "graph_002",
+    "topic": "graphs",
+    "difficulty": 2,
+    "title": "Clone Graph",
+    "description": "Given a reference to a node in a connected undirected graph, return a deep copy of the graph.",
+    "solution": "BFS/DFS with a hash map from original node to clone. For each neighbor, clone if not already cloned, add edge.",
+    "tags": ["bfs", "dfs", "hash_map"],
+    "expected_keywords": ["clone", "hash", "visited", "neighbor", "copy", "map"],
+    "time_budget_seconds": 300
+  },
+  {
+    "id": "graph_003",
+    "topic": "graphs",
+    "difficulty": 2,
+    "title": "BFS Shortest Path in Unweighted Graph",
+    "description": "Given an unweighted graph and a source node, find the shortest path to all other nodes.",
+    "solution": "Standard BFS from source. Use distance array initialized to -1. Enqueue neighbors with dist+1. O(V+E).",
+    "tags": ["bfs", "shortest_path"],
+    "expected_keywords": ["bfs", "queue", "distance", "visited", "neighbor", "shortest"],
+    "time_budget_seconds": 240
+  },
+  {
+    "id": "graph_004",
+    "topic": "graphs",
+    "difficulty": 3,
+    "title": "Course Schedule (Cycle Detection)",
+    "description": "There are n courses with prerequisites. Determine if you can finish all courses (detect cycle in directed graph).",
+    "solution": "Topological sort via Kahn's algorithm (BFS with in-degree) or DFS with coloring. If all nodes processed, no cycle.",
+    "tags": ["topological_sort", "cycle_detection", "directed"],
+    "expected_keywords": ["topological", "in-degree", "cycle", "bfs", "queue", "course"],
+    "time_budget_seconds": 360
+  },
+  {
+    "id": "graph_005",
+    "topic": "graphs",
+    "difficulty": 3,
+    "title": "Word Ladder",
+    "description": "Given begin word, end word, and a dictionary, find the length of the shortest transformation sequence (change one letter at a time).",
+    "solution": "BFS where each node is a word. Generate all possible one-letter transformations. Use visited set. O(n * m^2) where m is word length.",
+    "tags": ["bfs", "shortest_path", "string"],
+    "expected_keywords": ["bfs", "transform", "one letter", "queue", "visited", "level"],
+    "time_budget_seconds": 420
+  },
+  {
+    "id": "graph_006",
+    "topic": "graphs",
+    "difficulty": 4,
+    "title": "Dijkstra's Shortest Path",
+    "description": "Given a weighted graph with non-negative edges, find the shortest path from a source to all other vertices.",
+    "solution": "Priority queue (min-heap). Relax edges greedily: if dist[u] + w < dist[v], update and push. O((V+E) log V).",
+    "tags": ["shortest_path", "heap", "weighted"],
+    "expected_keywords": ["dijkstra", "heap", "priority", "relax", "distance", "weight"],
+    "time_budget_seconds": 480
+  },
+  {
+    "id": "graph_007",
+    "topic": "graphs",
+    "difficulty": 4,
+    "title": "Union-Find / Connected Components",
+    "description": "Given n nodes and a list of edges, find the number of connected components using Union-Find.",
+    "solution": "Disjoint Set Union with path compression and union by rank. Process each edge with union. Count distinct roots. O(n * α(n)).",
+    "tags": ["union_find", "disjoint_set"],
+    "expected_keywords": ["union", "find", "parent", "rank", "path compression", "component"],
+    "time_budget_seconds": 420
+  },
+
+  {
+    "id": "ss_001",
+    "topic": "sorting_searching",
+    "difficulty": 1,
+    "title": "Binary Search",
+    "description": "Given a sorted array and a target, return the index of the target or -1 if not found.",
+    "solution": "lo=0, hi=len-1. While lo<=hi: mid=(lo+hi)//2, compare. Adjust lo or hi. O(log n).",
+    "tags": ["binary_search", "basic"],
+    "expected_keywords": ["binary", "search", "lo", "hi", "mid", "sorted"],
+    "time_budget_seconds": 90
+  },
+  {
+    "id": "ss_002",
+    "topic": "sorting_searching",
+    "difficulty": 1,
+    "title": "Merge Sort",
+    "description": "Implement merge sort to sort an array in ascending order.",
+    "solution": "Divide array in half, recursively sort each half, merge two sorted halves. O(n log n) time, O(n) space.",
+    "tags": ["divide_and_conquer", "merge"],
+    "expected_keywords": ["merge", "divide", "sort", "recursive", "halves", "n log n"],
+    "time_budget_seconds": 180
+  },
+  {
+    "id": "ss_003",
+    "topic": "sorting_searching",
+    "difficulty": 2,
+    "title": "Search in Rotated Sorted Array",
+    "description": "Search for a target in a rotated sorted array. Return its index or -1.",
+    "solution": "Modified binary search: determine which half is sorted, check if target is in sorted half, adjust lo/hi accordingly. O(log n).",
+    "tags": ["binary_search", "rotated"],
+    "expected_keywords": ["binary search", "rotated", "sorted half", "mid", "lo", "hi"],
+    "time_budget_seconds": 300
+  },
+  {
+    "id": "ss_004",
+    "topic": "sorting_searching",
+    "difficulty": 2,
+    "title": "Find First and Last Position",
+    "description": "Given a sorted array, find the starting and ending position of a given target value.",
+    "solution": "Two binary searches: one to find leftmost occurrence (go left on match), one for rightmost (go right on match). O(log n).",
+    "tags": ["binary_search", "boundary"],
+    "expected_keywords": ["binary search", "leftmost", "rightmost", "boundary", "first", "last"],
+    "time_budget_seconds": 240
+  },
+  {
+    "id": "ss_005",
+    "topic": "sorting_searching",
+    "difficulty": 3,
+    "title": "Kth Largest Element",
+    "description": "Find the kth largest element in an unsorted array.",
+    "solution": "Quickselect (partition-based): average O(n). Or use min-heap of size k: O(n log k).",
+    "tags": ["quickselect", "heap", "partition"],
+    "core_keywords": ["partition", "kth"],
+    "expected_keywords": ["quickselect", "partition", "pivot", "kth", "heap"],
+    "approaches": [
+      {
+        "name": "quickselect",
+        "core": ["partition", "pivot"],
+        "keywords": ["quickselect", "partition", "pivot", "index", "average O(n)"]
+      },
+      {
+        "name": "min_heap",
+        "core": ["heap", "k"],
+        "keywords": ["heap", "min", "k", "push", "pop", "n log k"]
+      }
+    ],
+    "time_budget_seconds": 360
+  },
+  {
+    "id": "ss_006",
+    "topic": "sorting_searching",
+    "difficulty": 3,
+    "title": "Merge Intervals",
+    "description": "Given a collection of intervals, merge all overlapping intervals.",
+    "solution": "Sort by start time. Iterate: if current overlaps with last merged, extend end. Else add new. O(n log n).",
+    "tags": ["sorting", "intervals"],
+    "expected_keywords": ["sort", "merge", "overlap", "start", "end", "interval"],
+    "time_budget_seconds": 240
+  },
+  {
+    "id": "ss_007",
+    "topic": "sorting_searching",
+    "difficulty": 4,
+    "title": "Median of Two Sorted Arrays",
+    "description": "Find the median of two sorted arrays in O(log(min(m,n))) time.",
+    "solution": "Binary search on the smaller array to find the correct partition. Ensure maxLeft <= minRight on both sides.",
+    "tags": ["binary_search", "hard", "partition"],
+    "expected_keywords": ["binary search", "partition", "median", "left", "right", "min", "max"],
+    "time_budget_seconds": 600
+  },
+  {
+    "id": "ss_008",
+    "topic": "sorting_searching",
+    "difficulty": 2,
+    "title": "Sort Colors (Dutch National Flag)",
+    "description": "Given an array with values 0, 1, and 2, sort it in-place in a single pass.",
+    "solution": "Three pointers: lo=0, mid=0, hi=n-1. Swap 0s to lo, 2s to hi, skip 1s. O(n) time, O(1) space.",
+    "tags": ["three_pointer", "in_place", "partition"],
+    "expected_keywords": ["three pointer", "lo", "mid", "hi", "swap", "partition"],
+    "time_budget_seconds": 180
+  },
+
+  {
+    "id": "str_001",
+    "topic": "strings",
+    "difficulty": 1,
+    "title": "Reverse a String",
+    "description": "Write a function that reverses a string in-place (character array).",
+    "solution": "Two pointers from both ends, swap characters until they meet. O(n) time, O(1) space.",
+    "tags": ["two_pointer", "basic"],
+    "expected_keywords": ["two pointer", "swap", "left", "right", "reverse"],
+    "time_budget_seconds": 60
+  },
+  {
+    "id": "str_002",
+    "topic": "strings",
+    "difficulty": 1,
+    "title": "Valid Palindrome",
+    "description": "Given a string, determine if it is a palindrome considering only alphanumeric characters and ignoring cases.",
+    "solution": "Two pointers from both ends, skip non-alphanumeric, compare lowercased chars. O(n).",
+    "tags": ["two_pointer", "character"],
+    "expected_keywords": ["palindrome", "two pointer", "lowercase", "alphanumeric", "skip"],
+    "time_budget_seconds": 90
+  },
+  {
+    "id": "str_003",
+    "topic": "strings",
+    "difficulty": 2,
+    "title": "Valid Anagram",
+    "description": "Given two strings s and t, return true if t is an anagram of s.",
+    "solution": "Count character frequencies using a hash map or array of 26. Both must have identical counts. O(n).",
+    "tags": ["frequency", "hash_map"],
+    "expected_keywords": ["frequency", "count", "hash", "anagram", "26", "compare"],
+    "time_budget_seconds": 120
+  },
+  {
+    "id": "str_004",
+    "topic": "strings",
+    "difficulty": 2,
+    "title": "Longest Common Prefix",
+    "description": "Find the longest common prefix string among an array of strings.",
+    "solution": "Compare characters column by column across all strings. Stop when mismatch or end of any string. O(S) total chars.",
+    "tags": ["comparison", "prefix"],
+    "expected_keywords": ["prefix", "compare", "column", "mismatch", "shortest"],
+    "time_budget_seconds": 120
+  },
+  {
+    "id": "str_005",
+    "topic": "strings",
+    "difficulty": 3,
+    "title": "Longest Palindromic Substring",
+    "description": "Given a string, return the longest palindromic substring.",
+    "solution": "Expand around center for each character (and each pair). Track the longest found. O(n^2) time, O(1) space.",
+    "tags": ["expand_center", "palindrome"],
+    "expected_keywords": ["expand", "center", "palindrome", "left", "right", "longest"],
+    "time_budget_seconds": 300
+  },
+  {
+    "id": "str_006",
+    "topic": "strings",
+    "difficulty": 3,
+    "title": "String to Integer (atoi)",
+    "description": "Implement atoi which converts a string to an integer. Handle whitespace, signs, overflow, and invalid characters.",
+    "solution": "Skip whitespace, handle optional sign, parse digits, clamp to INT_MIN/INT_MAX on overflow. O(n).",
+    "tags": ["parsing", "edge_cases"],
+    "expected_keywords": ["sign", "overflow", "digit", "whitespace", "clamp", "INT_MAX"],
+    "time_budget_seconds": 240
+  },
+  {
+    "id": "str_007",
+    "topic": "strings",
+    "difficulty": 4,
+    "title": "Minimum Window Substring",
+    "description": "Given strings s and t, find the minimum window in s that contains all characters of t.",
+    "solution": "Sliding window with two frequency maps. Expand right to include, shrink left to minimize. Track best window. O(n).",
+    "tags": ["sliding_window", "hash_map", "hard"],
+    "expected_keywords": ["sliding window", "frequency", "left", "right", "min", "contains"],
+    "time_budget_seconds": 480
+  },
+  {
+    "id": "str_008",
+    "topic": "strings",
+    "difficulty": 2,
+    "title": "Count and Say",
+    "description": "Generate the n-th term of the count-and-say sequence. Each term describes the previous term.",
+    "solution": "Iteratively build each term: scan consecutive groups of digits, append count then digit. O(2^n) worst case.",
+    "tags": ["simulation", "string_building"],
+    "expected_keywords": ["count", "say", "group", "consecutive", "digit", "build"],
+    "time_budget_seconds": 180
+  },
+
+  {
+    "id": "hash_001",
+    "topic": "hashing",
+    "difficulty": 1,
+    "title": "Contains Duplicate",
+    "description": "Given an integer array, return true if any value appears at least twice.",
+    "solution": "Insert each element into a hash set. If it already exists, return true. O(n) time, O(n) space.",
+    "tags": ["hash_set", "basic"],
+    "expected_keywords": ["set", "hash", "duplicate", "contains", "add"],
+    "time_budget_seconds": 60
+  },
+  {
+    "id": "hash_002",
+    "topic": "hashing",
+    "difficulty": 1,
+    "title": "First Unique Character",
+    "description": "Given a string, find the first non-repeating character and return its index.",
+    "solution": "Count frequency of each char using hash map. Second pass finds first with count 1. O(n).",
+    "tags": ["frequency", "hash_map"],
+    "expected_keywords": ["frequency", "count", "first", "unique", "hash", "map"],
+    "time_budget_seconds": 90
+  },
+  {
+    "id": "hash_003",
+    "topic": "hashing",
+    "difficulty": 2,
+    "title": "Group Anagrams",
+    "description": "Given an array of strings, group anagrams together.",
+    "solution": "Sort each string (or use char frequency tuple) as key in a hash map. Values are groups. O(n * k log k).",
+    "tags": ["hash_map", "grouping"],
+    "expected_keywords": ["sort", "key", "hash", "group", "anagram", "map"],
+    "time_budget_seconds": 240
+  },
+  {
+    "id": "hash_004",
+    "topic": "hashing",
+    "difficulty": 2,
+    "title": "Intersection of Two Arrays",
+    "description": "Given two integer arrays, return their intersection (each element appears as many times as in both).",
+    "solution": "Count frequency of arr1 in hash map. For each element in arr2, if count > 0, add to result and decrement. O(n+m).",
+    "tags": ["hash_map", "frequency"],
+    "expected_keywords": ["frequency", "count", "intersection", "hash", "decrement"],
+    "time_budget_seconds": 180
+  },
+  {
+    "id": "hash_005",
+    "topic": "hashing",
+    "difficulty": 3,
+    "title": "Subarray Sum Equals K",
+    "description": "Given an array and integer k, find the total number of contiguous subarrays whose sum equals k.",
+    "solution": "Prefix sum + hash map. For each prefix sum, check if (prefix - k) exists in map. Store prefix sum frequencies. O(n).",
+    "tags": ["prefix_sum", "hash_map"],
+    "expected_keywords": ["prefix", "sum", "hash", "map", "count", "k"],
+    "time_budget_seconds": 360
+  },
+  {
+    "id": "hash_006",
+    "topic": "hashing",
+    "difficulty": 3,
+    "title": "Longest Consecutive Sequence",
+    "description": "Given an unsorted array of integers, find the length of the longest consecutive elements sequence in O(n) time.",
+    "solution": "Put all elements in a hash set. For each number that has no (num-1) in set (sequence start), count consecutive. Track max. O(n).",
+    "tags": ["hash_set", "sequence"],
+    "expected_keywords": ["set", "consecutive", "start", "count", "longest", "num-1"],
+    "time_budget_seconds": 300
+  },
+  {
+    "id": "hash_007",
+    "topic": "hashing",
+    "difficulty": 4,
+    "title": "LRU Cache",
+    "description": "Design a Least Recently Used cache with O(1) get and put operations.",
+    "solution": "Doubly linked list + hash map. Map stores key -> node. List orders by recency. Move to front on access, evict from tail.",
+    "tags": ["design", "hash_map", "linked_list"],
+    "expected_keywords": ["doubly linked list", "hash map", "evict", "front", "tail", "O(1)"],
+    "time_budget_seconds": 480
+  },
+  {
+    "id": "hash_008",
+    "topic": "hashing",
+    "difficulty": 2,
+    "title": "Ransom Note",
+    "description": "Given two strings ransomNote and magazine, return true if ransomNote can be constructed from magazine characters.",
+    "solution": "Count char frequencies in magazine using hash map. For each char in ransomNote, check availability and decrement. O(n+m).",
+    "tags": ["frequency", "hash_map"],
+    "expected_keywords": ["frequency", "count", "magazine", "hash", "available", "decrement"],
+    "time_budget_seconds": 120
+  },
+
+  {
+    "id": "rb_001",
+    "topic": "recursion_backtracking",
+    "difficulty": 1,
+    "title": "Power of Two",
+    "description": "Given an integer n, determine if it is a power of two using recursion.",
+    "solution": "Base cases: n<=0 -> false, n==1 -> true. Recursive: if n%2 != 0 -> false, else check n/2. O(log n).",
+    "tags": ["recursion", "base_case"],
+    "expected_keywords": ["recursion", "base case", "divide", "2", "power", "mod"],
+    "time_budget_seconds": 60
+  },
+  {
+    "id": "rb_002",
+    "topic": "recursion_backtracking",
+    "difficulty": 2,
+    "title": "Generate Parentheses",
+    "description": "Given n pairs of parentheses, generate all combinations of well-formed parentheses.",
+    "solution": "Backtracking: track open and close counts. Add '(' if open < n, add ')' if close < open. Base: length == 2n.",
+    "tags": ["backtracking", "string_building"],
+    "expected_keywords": ["backtrack", "open", "close", "parentheses", "valid", "n"],
+    "time_budget_seconds": 240
+  },
+  {
+    "id": "rb_003",
+    "topic": "recursion_backtracking",
+    "difficulty": 2,
+    "title": "Subsets",
+    "description": "Given an integer array of unique elements, return all possible subsets (power set).",
+    "solution": "Backtracking: at each index, include or exclude the element. Or iteratively double the result set. O(2^n).",
+    "tags": ["backtracking", "power_set"],
+    "expected_keywords": ["subset", "include", "exclude", "backtrack", "power set", "2^n"],
+    "time_budget_seconds": 240
+  },
+  {
+    "id": "rb_004",
+    "topic": "recursion_backtracking",
+    "difficulty": 3,
+    "title": "Permutations",
+    "description": "Given an array of distinct integers, return all possible permutations.",
+    "solution": "Backtracking with a used/visited boolean array. At each level, try each unused element. Base: path length == n. O(n!).",
+    "tags": ["backtracking", "permutation"],
+    "expected_keywords": ["permutation", "backtrack", "used", "visited", "swap", "n!"],
+    "time_budget_seconds": 300
+  },
+  {
+    "id": "rb_005",
+    "topic": "recursion_backtracking",
+    "difficulty": 3,
+    "title": "Combination Sum",
+    "description": "Given candidates and a target, find all unique combinations where the chosen numbers sum to target. Numbers can be used unlimited times.",
+    "solution": "Backtracking: at each step try each candidate >= current. Subtract from remaining. Stop when remaining == 0 or < 0. Avoid duplicates by starting from current index.",
+    "tags": ["backtracking", "combination"],
+    "expected_keywords": ["backtrack", "sum", "target", "remaining", "combination", "unlimited"],
+    "time_budget_seconds": 360
+  },
+  {
+    "id": "rb_006",
+    "topic": "recursion_backtracking",
+    "difficulty": 4,
+    "title": "N-Queens",
+    "description": "Place n queens on an n x n chessboard such that no two queens threaten each other. Return all solutions.",
+    "solution": "Backtracking row by row. Track columns, diag1 (r-c), diag2 (r+c) with sets. Place queen if no conflict, recurse to next row.",
+    "tags": ["backtracking", "constraint", "hard"],
+    "expected_keywords": ["queen", "backtrack", "column", "diagonal", "conflict", "row"],
+    "time_budget_seconds": 480
+  },
+  {
+    "id": "rb_007",
+    "topic": "recursion_backtracking",
+    "difficulty": 4,
+    "title": "Word Search",
+    "description": "Given an m x n grid of characters and a word, determine if the word exists in the grid by traversing adjacent cells.",
+    "solution": "DFS/backtracking from each cell. Mark visited, explore 4 directions, unmark on backtrack. O(m*n*4^L) worst case.",
+    "tags": ["backtracking", "grid", "dfs"],
+    "expected_keywords": ["backtrack", "visited", "dfs", "grid", "adjacent", "direction"],
+    "time_budget_seconds": 420
+  },
+  {
+    "id": "rb_008",
+    "topic": "recursion_backtracking",
+    "difficulty": 3,
+    "title": "Letter Combinations of a Phone Number",
+    "description": "Given a string of digits 2-9, return all possible letter combinations the number could represent (phone keypad).",
+    "solution": "Backtracking with a mapping of digit to letters. At each digit, try each letter and recurse. O(4^n).",
+    "tags": ["backtracking", "mapping"],
+    "expected_keywords": ["backtrack", "mapping", "digit", "letter", "phone", "combination"],
+    "time_budget_seconds": 240
+  },
+
+  {
+    "id": "heap_001",
+    "topic": "heaps",
+    "difficulty": 1,
+    "title": "Kth Largest Element in a Stream",
+    "description": "Design a class that finds the kth largest element in a stream of numbers.",
+    "solution": "Maintain a min-heap of size k. On add: push, if size > k pop smallest. Top of heap is kth largest. O(log k) per add.",
+    "tags": ["min_heap", "design"],
+    "expected_keywords": ["min heap", "k", "push", "pop", "top", "stream"],
+    "time_budget_seconds": 180
+  },
+  {
+    "id": "heap_002",
+    "topic": "heaps",
+    "difficulty": 1,
+    "title": "Last Stone Weight",
+    "description": "Smash the two heaviest stones together. If equal, both destroyed; else remaining = difference. Return last stone weight or 0.",
+    "solution": "Max-heap. Pop two largest, push difference if non-zero. Repeat until <= 1 stone. O(n log n).",
+    "tags": ["max_heap", "simulation"],
+    "expected_keywords": ["max heap", "pop", "smash", "difference", "heaviest"],
+    "time_budget_seconds": 120
+  },
+  {
+    "id": "heap_003",
+    "topic": "heaps",
+    "difficulty": 2,
+    "title": "K Closest Points to Origin",
+    "description": "Given an array of points, return the k closest points to the origin (0, 0).",
+    "solution": "Max-heap of size k by distance. Push each point; if size > k, pop farthest. Or min-heap and pop k times. O(n log k).",
+    "tags": ["heap", "distance"],
+    "expected_keywords": ["heap", "distance", "k", "closest", "origin", "x^2+y^2"],
+    "time_budget_seconds": 240
+  },
+  {
+    "id": "heap_004",
+    "topic": "heaps",
+    "difficulty": 2,
+    "title": "Sort Characters by Frequency",
+    "description": "Given a string, sort its characters in decreasing order of frequency.",
+    "solution": "Count frequencies, push to max-heap by frequency, pop and build result string. O(n log k) where k = distinct chars.",
+    "tags": ["heap", "frequency"],
+    "expected_keywords": ["frequency", "heap", "max", "count", "sort", "character"],
+    "time_budget_seconds": 180
+  },
+  {
+    "id": "heap_005",
+    "topic": "heaps",
+    "difficulty": 3,
+    "title": "Top K Frequent Elements",
+    "description": "Given an integer array and k, return the k most frequent elements.",
+    "solution": "Count frequencies with hash map. Use min-heap of size k by frequency, or bucket sort. O(n log k) or O(n).",
+    "tags": ["heap", "frequency", "hash_map"],
+    "core_keywords": ["frequency", "top k"],
+    "expected_keywords": ["frequency", "heap", "top", "k", "hash", "count"],
+    "approaches": [
+      {
+        "name": "heap_approach",
+        "core": ["heap", "frequency"],
+        "keywords": ["min heap", "frequency", "k", "push", "pop", "count"]
+      },
+      {
+        "name": "bucket_sort",
+        "core": ["bucket", "frequency"],
+        "keywords": ["bucket", "sort", "frequency", "index", "count", "O(n)"]
+      }
+    ],
+    "time_budget_seconds": 300
+  },
+  {
+    "id": "heap_006",
+    "topic": "heaps",
+    "difficulty": 3,
+    "title": "Task Scheduler",
+    "description": "Given tasks with a cooldown interval n, find the minimum time to execute all tasks.",
+    "solution": "Max-heap by task count. Each round process up to n+1 distinct tasks (pop from heap). Add idle slots if needed. O(total_tasks).",
+    "tags": ["heap", "greedy", "scheduling"],
+    "expected_keywords": ["heap", "cooldown", "greedy", "idle", "frequency", "interval"],
+    "time_budget_seconds": 360
+  },
+  {
+    "id": "heap_007",
+    "topic": "heaps",
+    "difficulty": 4,
+    "title": "Find Median from Data Stream",
+    "description": "Design a data structure that supports adding numbers and finding the median efficiently.",
+    "solution": "Two heaps: max-heap for lower half, min-heap for upper half. Balance sizes. Median from tops. O(log n) add, O(1) find.",
+    "tags": ["two_heap", "design", "hard"],
+    "expected_keywords": ["two heaps", "max heap", "min heap", "median", "balance", "top"],
+    "time_budget_seconds": 420
+  },
+  {
+    "id": "heap_008",
+    "topic": "heaps",
+    "difficulty": 4,
+    "title": "Merge K Sorted Lists",
+    "description": "Merge k sorted linked lists into one sorted linked list.",
+    "solution": "Min-heap of size k containing one node from each list. Pop smallest, add to result, push its next node. O(N log k).",
+    "tags": ["heap", "linked_list", "merge"],
+    "expected_keywords": ["min heap", "merge", "k", "pop", "push", "next", "sorted"],
+    "time_budget_seconds": 360
   }
 ]
