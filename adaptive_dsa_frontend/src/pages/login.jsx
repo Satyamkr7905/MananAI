@@ -158,9 +158,11 @@ export default function Login() {
               <GoogleLogin
                 onSuccess={async (res) => {
                   try {
-                    await loginWithGoogle(res.credential);
-                  } catch (e) {
-                    toast.error(e?.message || "Google sign-in failed.");
+                    // login mode: unknown Google emails are routed to /signup
+                    // (AuthContext handles the redirect + pre-fill).
+                    await loginWithGoogle(res.credential, "login");
+                  } catch {
+                    /* toast surfaced by AuthContext */
                   }
                 }}
                 onError={() => toast.error("Google sign-in was cancelled or failed.")}

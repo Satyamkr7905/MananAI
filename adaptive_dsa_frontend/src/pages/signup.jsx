@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 import toast from "react-hot-toast";
@@ -7,6 +8,18 @@ import toast from "react-hot-toast";
 import AuthShell from "@/components/AuthShell";
 import Loader from "@/components/Loader";
 import { useAuth } from "@/hooks/useAuth";
+
+// Lazy-load the Google Identity Services button so its ~20KB chunk (and the
+// remote gsi/client script) only load when the user actually needs it.
+const GoogleLogin = dynamic(
+  () => import("@react-oauth/google").then((m) => m.GoogleLogin),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-10 w-[260px] rounded-md bg-slate-100 dark:bg-slate-800 animate-pulse" />
+    ),
+  },
+);
 
 const MIN_PW = 8;
 
@@ -25,7 +38,9 @@ function scorePassword(pw) {
 
 export default function Signup() {
   const router = useRouter();
-  const { token, loading, signup } = useAuth();
+  const { token, loading, signup, loginWithGoogle } = useAuth();
+
+  const showGoogle = Boolean(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -37,6 +52,16 @@ export default function Signup() {
   useEffect(() => {
     if (!loading && token) router.replace("/dashboard");
   }, [loading, token, router]);
+
+  // Pre-fill email/name when the user was bounced here from the Google
+  // "Sign in" button because no account exists yet.
+  useEffect(() => {
+    if (!router.isReady) return;
+    const qEmail = typeof router.query.email === "string" ? router.query.email : "";
+    const qName = typeof router.query.name === "string" ? router.query.name : "";
+    if (qEmail) setEmail((prev) => prev || qEmail);
+    if (qName) setName((prev) => prev || qName);
+  }, [router.isReady, router.query.email, router.query.name]);
 
   const strength = scorePassword(password);
   const issues = [];
@@ -193,6 +218,34 @@ export default function Signup() {
             {submitting ? <Loader size="sm" /> : "Create account & send code"}
           </button>
         </form>
+
+        {showGoogle && (
+          <>
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center" aria-hidden>
+                <div className="w-full border-t border-slate-200 dark:border-slate-700" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white dark:bg-slate-950 px-3 text-slate-400 dark:text-slate-500">or sign up with</span>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={async (res) => {
+                  try {
+                    // signup mode: create or link the account with no password.
+                    await loginWithGoogle(res.credential, "signup");
+                  } catch {
+                    /* toast surfaced by AuthContext */
+                  }
+                }}
+                onError={() => toast.error("Google sign-up was cancelled or failed.")}
+                useOneTap={false}
+                text="signup_with"
+              />
+            </div>
+          </>
+        )}
 
         <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
           Already have an account?{" "}

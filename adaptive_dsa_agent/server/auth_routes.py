@@ -79,6 +79,10 @@ class VerifyOtpBody(BaseModel):
 
 class GoogleBody(BaseModel):
     credential: str
+    # "login"  -> only log in existing users; return needsSignup=true for new emails.
+    # "signup" -> create or link the account (Google-only, no password).
+    # None     -> legacy behaviour: create-or-link (kept for backward compatibility).
+    mode: str | None = None
 
 
 class SignupBody(BaseModel):
@@ -381,8 +385,26 @@ def auth_google(body: GoogleBody, db: Session = Depends(get_session)):
     if user is None:
         user = db.query(User).filter(User.email == email).first()
 
+    mode = (body.mode or "").strip().lower()
+
     if user is None:
-        user = User(email=email, name=name, picture=picture, google_sub=sub)
+        # Login-only: never auto-create. Tell the frontend to route the user
+        # through the signup page, with their Google profile pre-filled.
+        if mode == "login":
+            return {
+                "needsSignup": True,
+                "email": email,
+                "name": name,
+                "picture": picture,
+            }
+        # Signup (or legacy): create the Google-linked account and log in.
+        user = User(
+            email=email,
+            name=name,
+            picture=picture,
+            google_sub=sub,
+            email_verified=True,
+        )
         db.add(user)
         db.commit()
         db.refresh(user)
@@ -392,6 +414,9 @@ def auth_google(body: GoogleBody, db: Session = Depends(get_session)):
         user.picture = picture or user.picture
         if sub and not user.google_sub:
             user.google_sub = sub
+        # Google already confirmed the address, so we trust it.
+        if not getattr(user, "email_verified", False):
+            user.email_verified = True
         db.add(user)
         db.commit()
         db.refresh(user)

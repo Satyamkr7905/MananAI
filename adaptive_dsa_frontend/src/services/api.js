@@ -90,8 +90,9 @@ export const loginWithPassword = ({ email, password }) =>
   request("/login", { method: "POST", body: { email, password } });
 
 // swap a google credential (from GIS) for our own JWT.
-export const loginWithGoogle = ({ credential }) =>
-  request("/auth/google", { method: "POST", body: { credential } });
+// mode: "login" (reject unknown emails), "signup" (create-or-link), or undefined (legacy).
+export const loginWithGoogle = ({ credential, mode }) =>
+  request("/auth/google", { method: "POST", body: { credential, mode } });
 
 // ------------------------------ tutor ------------------------------
 

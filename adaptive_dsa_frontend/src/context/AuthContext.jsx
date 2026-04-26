@@ -113,17 +113,36 @@ export const AuthProvider = ({ children }) => {
   );
 
   const loginWithGoogle = useCallback(
-    async (credential) => {
-      const { token, user } = await apiLoginWithGoogle({ credential });
-      saveSession({ token, user });
+    async (credential, mode = "signup") => {
       try {
-        await syncProgressFromServer();
-      } catch {
-        /* non-fatal */
+        const res = await apiLoginWithGoogle({ credential, mode });
+
+        // Login mode + unknown email -> server returns { needsSignup: true, ... }
+        // Send the user to /signup with their Google profile pre-filled.
+        if (res?.needsSignup) {
+          const params = new URLSearchParams();
+          if (res.email) params.set("email", res.email);
+          if (res.name) params.set("name", res.name);
+          params.set("fromGoogle", "1");
+          toast("No account found. Let's create one.", { icon: "👋" });
+          router.push(`/signup?${params.toString()}`);
+          return;
+        }
+
+        const { token, user } = res;
+        saveSession({ token, user });
+        try {
+          await syncProgressFromServer();
+        } catch {
+          /* non-fatal */
+        }
+        setState({ token, user, loading: false });
+        toast.success(`Welcome, ${user.name || user.email}!`);
+        router.push("/dashboard");
+      } catch (e) {
+        toast.error(e?.message || "Google sign-in failed.");
+        throw e;
       }
-      setState({ token, user, loading: false });
-      toast.success(`Welcome, ${user.name || user.email}!`);
-      router.push("/dashboard");
     },
     [router],
   );
