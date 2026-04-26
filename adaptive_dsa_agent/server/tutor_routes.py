@@ -30,7 +30,8 @@ def user_stats(user: User = Depends(get_current_user), db: Session = Depends(get
         data = {}
     state = UserState.from_dict(data) if data else UserState(user_id=user.id)
     state.user_id = user.id
-    return build_stats(state)
+    total_questions = len(get_tutor().bank.all())
+    return build_stats(state, total_questions=total_questions)
 
 
 @router.get("/user/improvement")
@@ -96,8 +97,18 @@ def user_progress(user: User = Depends(get_current_user), db: Session = Depends(
 
 
 @router.get("/topics")
-def topics(_user: User = Depends(get_current_user)):
-    return get_tutor().topics_for_api()
+def topics(user: User = Depends(get_current_user), db: Session = Depends(get_session)):
+    ensure_learning_row(db, user)
+    row = db.get(UserLearningState, user.id)
+    solved_ids: set[str] = set()
+    if row is not None:
+        try:
+            data = json.loads(row.tutor_state_json or "{}")
+        except json.JSONDecodeError:
+            data = {}
+        state = UserState.from_dict(data) if data else UserState(user_id=user.id)
+        solved_ids = {h.qid for h in state.history if h.correct}
+    return get_tutor().topics_for_api(solved_ids=solved_ids)
 
 
 @router.get("/questions/next")

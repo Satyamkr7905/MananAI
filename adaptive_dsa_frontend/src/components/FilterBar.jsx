@@ -40,6 +40,7 @@ export default function FilterBar({
           active={selectedTopic === "all"}
           onClick={() => onTopicChange?.("all")}
           count={topics.reduce((s, t) => s + t.count, 0)}
+          solved={topics.reduce((s, t) => s + (t.solved ?? 0), 0)}
         >
           All topics
         </Pill>
@@ -49,6 +50,7 @@ export default function FilterBar({
             active={selectedTopic === t.key}
             onClick={() => onTopicChange?.(t.key)}
             count={t.count}
+            solved={t.solved}
           >
             {t.label}
           </Pill>
@@ -78,29 +80,33 @@ export default function FilterBar({
   );
 }
 
-const Pill = ({ active, onClick, count, children }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={cn(
-      "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-colors shrink-0 ring-1",
-      active
-        ? "bg-brand-600 text-white ring-brand-600 dark:bg-brand-500 dark:ring-brand-500"
-        : "bg-white text-slate-600 ring-slate-200 hover:ring-slate-300 hover:text-slate-900 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700 dark:hover:ring-slate-600 dark:hover:text-slate-100",
-    )}
-  >
-    {children}
-    {typeof count === "number" && (
-      <span
-        className={cn(
-          "text-xs rounded-full px-1.5 py-0.5 tabular-nums",
-          active
-            ? "bg-white/20 text-white"
-            : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
-        )}
-      >
-        {count}
-      </span>
-    )}
-  </button>
-);
+const Pill = ({ active, onClick, count, solved, children }) => {
+  const hasSolved = typeof solved === "number";
+  const hasCount = typeof count === "number";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-colors shrink-0 ring-1",
+        active
+          ? "bg-brand-600 text-white ring-brand-600 dark:bg-brand-500 dark:ring-brand-500"
+          : "bg-white text-slate-600 ring-slate-200 hover:ring-slate-300 hover:text-slate-900 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700 dark:hover:ring-slate-600 dark:hover:text-slate-100",
+      )}
+    >
+      {children}
+      {hasCount && (
+        <span
+          className={cn(
+            "text-xs rounded-full px-1.5 py-0.5 tabular-nums",
+            active
+              ? "bg-white/20 text-white"
+              : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
+          )}
+        >
+          {hasSolved ? `${solved}/${count}` : count}
+        </span>
+      )}
+    </button>
+  );
+};

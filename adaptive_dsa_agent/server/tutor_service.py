@@ -78,11 +78,15 @@ class TutorRuntime:
         self.evaluator = Evaluator()
         self.hinter = HintGenerator()
 
-    def topics_for_api(self) -> list[dict[str, Any]]:
+    def topics_for_api(self, solved_ids: set[str] | None = None) -> list[dict[str, Any]]:
+        solved = solved_ids or set()
         by_key: dict[str, int] = {}
+        solved_by_key: dict[str, int] = {}
         for q in self.bank.all():
             t = q.get("topic", "")
             by_key[t] = by_key.get(t, 0) + 1
+            if q.get("id") in solved:
+                solved_by_key[t] = solved_by_key.get(t, 0) + 1
         labels = {
             "arrays": "Arrays",
             "dp": "Dynamic Programming",
@@ -90,7 +94,15 @@ class TutorRuntime:
             "trees": "Trees",
             "strings": "Strings",
         }
-        return [{"key": k, "label": labels.get(k, k), "count": c} for k, c in sorted(by_key.items())]
+        return [
+            {
+                "key": k,
+                "label": labels.get(k, k),
+                "count": c,
+                "solved": solved_by_key.get(k, 0),
+            }
+            for k, c in sorted(by_key.items())
+        ]
 
     def next_question(
         self,

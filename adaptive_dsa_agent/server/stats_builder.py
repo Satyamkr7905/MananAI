@@ -27,7 +27,7 @@ def _day_key(iso_ts: str) -> str:
         return date.today().isoformat()
 
 
-def build_stats(state: UserState) -> dict[str, Any]:
+def build_stats(state: UserState, total_questions: int = 0) -> dict[str, Any]:
     topics_out: list[dict[str, Any]] = []
     for topic_key, skill in sorted(state.topics.items()):
         lvl = max(0, min(5, int(skill.level)))
@@ -59,6 +59,7 @@ def build_stats(state: UserState) -> dict[str, Any]:
     weakest = min(topics_out, key=lambda t: t["progress"])
 
     correct = sum(1 for h in state.history if h.correct)
+    solved_unique = len({h.qid for h in state.history if h.correct})
     total = len(state.history)
     accuracy = (correct / total) if total else 0.0
 
@@ -71,13 +72,20 @@ def build_stats(state: UserState) -> dict[str, Any]:
 
     progress_series = _progress_series(state)
 
-    level = int(round(max((t["level"] for t in topics_out), default=1)))
+    # Overall level: every (total_questions / 5) unique questions solved adds 1
+    # level (clamped to 1..5). With 88 questions this is ~17 per level.
+    effective_total = int(total_questions) if int(total_questions) > 0 else 88
+    per_level = max(1, effective_total // 5)
+    level = max(1, min(5, 1 + solved_unique // per_level))
 
     return {
         "streak": streak,
         "totalSolved": correct,
+        "solvedUnique": solved_unique,
+        "totalQuestions": effective_total,
+        "perLevel": per_level,
         "accuracy": round(accuracy, 2),
-        "level": max(1, min(5, level)),
+        "level": level,
         "topics": topics_out,
         "strongest": strongest,
         "weakest": weakest,
