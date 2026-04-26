@@ -22,6 +22,20 @@ module.exports = {
           800: "#383f28",
           900: "#2f3523",
         },
+        /* Warm cream palette — used as the light-mode canvas to
+           match the brand olive + cream look. */
+        cream: {
+          50:  "#faf6e8",
+          100: "#f3ecd2",
+          200: "#ece2b8",
+          300: "#ddd09a",
+          400: "#c8b97b",
+          500: "#ac9f62",
+          600: "#8a7f4f",
+          700: "#6b633e",
+          800: "#4f4930",
+          900: "#3a3523",
+        },
       },
       boxShadow: {
         card: "0 1px 2px rgba(15,23,42,0.04), 0 1px 3px rgba(15,23,42,0.06)",

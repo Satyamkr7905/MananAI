@@ -19,7 +19,7 @@ export default function ProtectedRoute({ children }) {
 
   if (loading || !token) {
     return (
-      <div className="min-h-screen grid place-items-center bg-slate-50">
+      <div className="min-h-screen grid place-items-center bg-cream-50 dark:bg-slate-950">
         <Loader label="Loading your session..." />
       </div>
     );

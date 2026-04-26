@@ -14,7 +14,7 @@ export default function AppLayout({ children, title, subtitle, actions }) {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
+      <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-slate-950">
         <Navbar onMenuClick={() => setMobileMenuOpen(true)} />
         <div className="flex-1 flex">
           <Sidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
