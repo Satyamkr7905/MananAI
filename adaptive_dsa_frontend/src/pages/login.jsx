@@ -25,7 +25,11 @@ export default function Login() {
   const router = useRouter();
   const { token, loading, requestOtp, loginWithPassword, loginWithGoogle } = useAuth();
 
-  const showGoogle = Boolean(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+  // Google Sign-In is temporarily disabled while the OAuth client is being
+  // reconfigured. Flip back to the commented line below once a valid
+  // NEXT_PUBLIC_GOOGLE_CLIENT_ID is set on the environment.
+  const showGoogle = false;
+  // const showGoogle = Boolean(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
