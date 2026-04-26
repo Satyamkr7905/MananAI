@@ -148,6 +148,17 @@ class EvaluatorTests(unittest.TestCase):
         self.assertNotIn("off-track", lowered)
         self.assertNotIn("wrong", lowered)
 
+    def test_rubric_scores_are_returned(self) -> None:
+        r = self.ev.evaluate(
+            BASIC_Q,
+            "Use a loop to compute the running total in O(n) time. "
+            "Handle empty input as an edge case.",
+        )
+        self.assertIn("rubric", r)
+        self.assertGreaterEqual(r["rubric"].get("pattern", 0.0), 0.5)
+        self.assertGreaterEqual(r["rubric"].get("complexity", 0.0), 0.9)
+        self.assertGreaterEqual(r["rubric"].get("edge_cases", 0.0), 0.9)
+
 
 if __name__ == "__main__":
     unittest.main()

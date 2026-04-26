@@ -77,6 +77,7 @@ class StateManager:
         evaluator_result: dict[str, Any],
         hints_used: int,
         elapsed_seconds: float,
+        self_confidence: float | None = None,
     ) -> dict[str, Any]:
         """Apply every consequence of one attempt; returns a short summary dict."""
         topic = question["topic"]
@@ -118,6 +119,7 @@ class StateManager:
             score=score,
             hints_used=hints_used,
             time_seconds=elapsed_seconds,
+            self_confidence=self_confidence,
             error_type=evaluator_result.get("error_type"),
             question_tags=question.get("tags") or [],
         )

@@ -13,14 +13,14 @@ class EMATests(unittest.TestCase):
         # Three perfect attempts should drive ema_accuracy toward 1.0.
         for _ in range(3):
             s.record_attempt(qid="q1", topic="arrays", correct=True, score=1.0,
-                             hints_used=0, time_seconds=10.0, error_type=None,
+                             hints_used=0, time_seconds=10.0, self_confidence=0.8, error_type=None,
                              question_tags=["loop"])
         self.assertGreater(s.topic("arrays").ema_accuracy, 0.75)
 
         # Three wrong attempts should pull it back down.
         for _ in range(3):
             s.record_attempt(qid="q1", topic="arrays", correct=False, score=0.0,
-                             hints_used=0, time_seconds=60.0, error_type="logic",
+                             hints_used=0, time_seconds=60.0, self_confidence=0.7, error_type="logic",
                              question_tags=["loop"])
         self.assertLess(s.topic("arrays").ema_accuracy, 0.5)
 
@@ -29,7 +29,7 @@ class LeitnerTests(unittest.TestCase):
     def test_wrong_answer_keeps_box_at_1_and_schedules_soon(self) -> None:
         s = UserState()
         s.record_attempt(qid="q1", topic="arrays", correct=False, score=0.0,
-                         hints_used=0, time_seconds=30.0, error_type="logic",
+                         hints_used=0, time_seconds=30.0, self_confidence=0.6, error_type="logic",
                          question_tags=["loop"])
         qs = s.qstat("q1")
         self.assertEqual(qs.box, 1)
@@ -39,14 +39,14 @@ class LeitnerTests(unittest.TestCase):
 
         # One more unrelated attempt passes → q1 is now due for review.
         s.record_attempt(qid="q2", topic="arrays", correct=True, score=1.0,
-                         hints_used=0, time_seconds=20.0, error_type=None,
+                         hints_used=0, time_seconds=20.0, self_confidence=0.9, error_type=None,
                          question_tags=["loop"])
         self.assertIn("q1", s.due_for_review_qids())
 
     def test_correct_answer_advances_box_and_pushes_out_due_date(self) -> None:
         s = UserState()
         s.record_attempt(qid="q1", topic="arrays", correct=True, score=1.0,
-                         hints_used=0, time_seconds=20.0, error_type=None,
+                         hints_used=0, time_seconds=20.0, self_confidence=0.9, error_type=None,
                          question_tags=["loop"])
         qs = s.qstat("q1")
         self.assertEqual(qs.box, 2)
@@ -93,7 +93,7 @@ class SerializationRoundTripTests(unittest.TestCase):
         s = UserState(user_id="x")
         s.topic("arrays").level = 2
         s.record_attempt(qid="q", topic="arrays", correct=True, score=0.9,
-                         hints_used=1, time_seconds=42.0, error_type=None,
+                         hints_used=1, time_seconds=42.0, self_confidence=0.75, error_type=None,
                          question_tags=["hash_map"])
         # Set these *after* the attempt so record_attempt's EMA update doesn't
         # surprise us — we're testing serialization, not EMA math.
@@ -109,8 +109,27 @@ class SerializationRoundTripTests(unittest.TestCase):
         self.assertAlmostEqual(roundtrip.strengths["hash_map"], 1.4, places=5)
         self.assertEqual(roundtrip.scheduled_reviews, ["q2"])
         self.assertEqual(roundtrip.history[0].score, 0.9)
+        self.assertAlmostEqual(roundtrip.history[0].self_confidence or 0.0, 0.75, places=5)
         # Leitner stat survives the round-trip too.
         self.assertEqual(roundtrip.qstat("q").box, 2)
+
+
+class ConfidenceCalibrationTests(unittest.TestCase):
+    def test_calibration_updates_when_confidence_present(self) -> None:
+        s = UserState()
+        s.record_attempt(
+            qid="q1",
+            topic="arrays",
+            correct=False,
+            score=0.2,
+            hints_used=0,
+            time_seconds=15.0,
+            self_confidence=0.8,
+            error_type="logic",
+            question_tags=["loop"],
+        )
+        self.assertGreater(s.calibration_mae, 0.0)
+        self.assertGreater(s.confidence_ema, 0.5)
 
 
 if __name__ == "__main__":

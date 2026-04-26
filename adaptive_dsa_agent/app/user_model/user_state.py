@@ -73,6 +73,8 @@ class AttemptRecord:
     score: float
     hints_used: int
     time_seconds: float
+    self_confidence: float | None
+    calibration_error: float | None
     error_type: str | None
     timestamp: str
 
@@ -90,6 +92,8 @@ class UserState:
     scheduled_reviews: list[str] = field(default_factory=list)
     avg_response_time: float = 0.0
     confidence: float = 0.5
+    confidence_ema: float = 0.5
+    calibration_mae: float = 0.0
     current_topic: str | None = None
 
     # ---------------- convenience getters ----------------
@@ -122,10 +126,15 @@ class UserState:
         score: float,
         hints_used: int,
         time_seconds: float,
+        self_confidence: float | None,
         error_type: str | None,
         question_tags: Iterable[str] = (),
     ) -> AttemptRecord:
         """Append an attempt and run all the memory-level bookkeeping."""
+        conf_norm: float | None = None
+        if self_confidence is not None:
+            conf_norm = max(0.0, min(1.0, float(self_confidence)))
+        calibration_error = abs((conf_norm or 0.0) - float(score)) if conf_norm is not None else None
         rec = AttemptRecord(
             qid=qid,
             topic=topic,
@@ -133,6 +142,8 @@ class UserState:
             score=float(score),
             hints_used=hints_used,
             time_seconds=float(time_seconds),
+            self_confidence=conf_norm,
+            calibration_error=calibration_error,
             error_type=error_type,
             timestamp=datetime.now(timezone.utc).isoformat(timespec="seconds"),
         )
@@ -145,6 +156,17 @@ class UserState:
         trow = self.topic(topic)
         trow.attempts += 1
         trow.update_ema(score=rec.score, seconds=rec.time_seconds)
+        if rec.self_confidence is not None:
+            if trow.attempts <= 1:
+                self.confidence_ema = rec.self_confidence
+            else:
+                self.confidence_ema = (
+                    _EMA_ALPHA * rec.self_confidence + (1 - _EMA_ALPHA) * self.confidence_ema
+                )
+            self.confidence = self.confidence_ema
+            seen_cal = [h.calibration_error for h in self.history if h.calibration_error is not None]
+            if seen_cal:
+                self.calibration_mae = float(sum(seen_cal) / len(seen_cal))
 
         # Per-question Leitner memory ----------------------------------------
         qs = self.qstat(qid)
@@ -236,6 +258,8 @@ class UserState:
             "scheduled_reviews": list(self.scheduled_reviews),
             "avg_response_time": self.avg_response_time,
             "confidence": self.confidence,
+            "confidence_ema": self.confidence_ema,
+            "calibration_mae": self.calibration_mae,
             "current_topic": self.current_topic,
         }
 
@@ -248,6 +272,10 @@ class UserState:
         for h in data.get("history") or []:
             if "score" not in h:
                 h = {**h, "score": 1.0 if h.get("correct") else 0.0}
+            if "self_confidence" not in h:
+                h = {**h, "self_confidence": None}
+            if "calibration_error" not in h:
+                h = {**h, "calibration_error": None}
             history.append(AttemptRecord(**h))
         return cls(
             user_id=data.get("user_id", "default"),
@@ -261,6 +289,8 @@ class UserState:
             scheduled_reviews=list(data.get("scheduled_reviews") or []),
             avg_response_time=float(data.get("avg_response_time", 0.0)),
             confidence=float(data.get("confidence", 0.5)),
+            confidence_ema=float(data.get("confidence_ema", data.get("confidence", 0.5))),
+            calibration_mae=float(data.get("calibration_mae", 0.0)),
             current_topic=data.get("current_topic"),
         )
 

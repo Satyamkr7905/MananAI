@@ -82,6 +82,22 @@ _SYNONYM_GROUPS: tuple[frozenset[str], ...] = (
 
 
 _WORD_NORMALIZE = re.compile(r"[^a-z0-9]+")
+_COMPLEXITY_PATTERNS = (
+    r"\bo\([^)]+\)",
+    r"\blinear\b",
+    r"\blog\b",
+    r"\bconstant\b",
+    r"\btime complexity\b",
+    r"\bspace complexity\b",
+)
+_EDGECASE_PATTERNS = (
+    r"\bedge case\b",
+    r"\bempty\b",
+    r"\bsingle\b",
+    r"\bnull\b",
+    r"\bduplicate\b",
+    r"\bboundary\b",
+)
 
 
 def _normalize(text: str) -> str:
@@ -158,6 +174,7 @@ class Evaluator:
                 best = ap
                 best_matched = matched
                 best_missed = missed
+        rubric = self._rubric_scores(answer, best_score, best_matched, question)
 
         if best_score >= self.correct_threshold:
             return self._make_result(
@@ -168,6 +185,7 @@ class Evaluator:
                 best_missed,
                 approach=best["name"] if best else None,
                 correct=True,
+                rubric=rubric,
             )
 
         error_type = self._infer_error_type(answer.lower(), question, best_score)
@@ -179,6 +197,7 @@ class Evaluator:
             best_missed,
             approach=best["name"] if best else None,
             correct=False,
+            rubric=rubric,
         )
 
     @staticmethod
@@ -281,6 +300,40 @@ class Evaluator:
         return "logic" if score < self.close_threshold else "unknown"
 
     @staticmethod
+    def _has_any_pattern(text: str, patterns: Iterable[str]) -> bool:
+        lower = text.lower()
+        return any(re.search(p, lower) for p in patterns)
+
+    def _rubric_scores(
+        self,
+        answer: str,
+        keyword_score: float,
+        matched_keywords: list[str],
+        question: dict[str, Any],
+    ) -> dict[str, float]:
+        answer_words = [w for w in _normalize(answer).split(" ") if w]
+        clarity = min(1.0, len(answer_words) / 40.0)
+        pattern = max(0.0, min(1.0, keyword_score))
+        complexity = 1.0 if self._has_any_pattern(answer, _COMPLEXITY_PATTERNS) else 0.35
+        edge_cases = 1.0 if self._has_any_pattern(answer, _EDGECASE_PATTERNS) else 0.3
+        # If the author tagged common pitfalls, reward mentions of those tags.
+        pitfall_coverage = 0.0
+        pitfall_tags = [str(t) for t in (question.get("tags") or []) if "off_by_one" in str(t) or "base_case" in str(t)]
+        if pitfall_tags and any(_contains(answer, t.replace("_", " ")) for t in pitfall_tags):
+            pitfall_coverage = 0.2
+        pattern = min(1.0, pattern + pitfall_coverage)
+        weighted = (pattern * 0.4) + (complexity * 0.2) + (edge_cases * 0.2) + (clarity * 0.2)
+        return {
+            "pattern": round(pattern, 3),
+            "complexity": round(complexity, 3),
+            "edge_cases": round(edge_cases, 3),
+            "clarity": round(clarity, 3),
+            "overall": round(weighted, 3),
+            "keywordCoverage": round(float(keyword_score), 3),
+            "matchedCount": float(len(matched_keywords)),
+        }
+
+    @staticmethod
     def _make_result(
         score: float,
         error_type: str | None,
@@ -290,6 +343,7 @@ class Evaluator:
         *,
         approach: str | None = None,
         correct: bool | None = None,
+        rubric: dict[str, float] | None = None,
     ) -> dict[str, Any]:
         if correct is None:
             correct = score >= CORRECT_THRESHOLD
@@ -301,4 +355,5 @@ class Evaluator:
             "missed": list(missed),
             "approach": approach,
             "notes": notes,
+            "rubric": rubric or {},
         }

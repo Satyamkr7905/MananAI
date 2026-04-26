@@ -120,6 +120,7 @@ class SubmitBody(BaseModel):
     questionId: str
     answer: str = ""
     hintsUsed: int = Field(0, ge=0)
+    selfConfidence: int | None = Field(default=None, ge=0, le=100)
 
 
 @router.post("/submit-answer")
@@ -136,6 +137,7 @@ def submit_answer(
             question_id=body.questionId,
             answer=body.answer,
             hints_used=body.hintsUsed,
+            self_confidence=body.selfConfidence,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

@@ -69,6 +69,23 @@ class HintGenerator:
 
         return self._offline_hint(ctx)
 
+    def generate_counterfactual(
+        self,
+        question: dict[str, Any],
+        evaluator_result: dict[str, Any] | None = None,
+    ) -> str:
+        """Generate a short "what-if" follow-up to test transfer learning."""
+        prompts = question.get("counterfactual_prompts") or []
+        if isinstance(prompts, list) and prompts:
+            # Prefer a deterministic first prompt for stable UX/tests.
+            return str(prompts[0]).strip()
+
+        tags = [str(t) for t in (question.get("tags") or [])]
+        title = str(question.get("title") or "this problem")
+        score = float((evaluator_result or {}).get("score", 0.0))
+        mode = "stretch" if score >= 0.75 else "bridge"
+        return _counterfactual_from_tags(title=title, tags=tags, mode=mode)
+
     def _get_llm_model(self) -> Any | None:
         if self._llm_model_attempted:
             return self._llm_model
@@ -339,3 +356,36 @@ def _split_solution_into_steps(solution: str) -> list[str]:
         return ["Re-read the problem and state the approach in plain English first."]
     parts = [p.strip() for p in solution.replace(";", ".").split(".") if p.strip()]
     return parts[:6] if parts else [solution.strip()]
+
+
+def _counterfactual_from_tags(*, title: str, tags: list[str], mode: str = "bridge") -> str:
+    for tag in tags:
+        if tag in _COUNTERFACTUALS:
+            base = _COUNTERFACTUALS[tag]
+            if mode == "stretch":
+                return f"{base} Also state the new time/space complexity."
+            return base
+    if mode == "stretch":
+        return (
+            f'What if "{title}" receives data as an online stream instead of a full array? '
+            "How would your approach change?"
+        )
+    return (
+        f'What if "{title}" had one tighter constraint (less memory or stricter latency)? '
+        "Which part of your approach would you adjust first?"
+    )
+
+
+_COUNTERFACTUALS: dict[str, str] = {
+    "two_pointer": "What if the input is no longer sorted? How would you preserve linear-ish performance?",
+    "sliding_window": "What if the window condition changes dynamically per step? How would you track validity?",
+    "hash_map": "What if memory is capped and a full hash map is too large? What tradeoff would you choose?",
+    "prefix_sum": "What if updates and range-queries are both frequent? Which data structure would replace prefix sums?",
+    "binary_search": "What if the search space is implicit (answer range) rather than an explicit array?",
+    "dfs": "What if recursion depth can exceed stack limits? How would you convert this to iterative traversal?",
+    "bfs": "What if edges have different costs? Which algorithm replaces plain BFS and why?",
+    "backtracking": "What pruning rule could drastically reduce the branching factor here?",
+    "heap": "What if you also need fast deletions of arbitrary elements, not just top priority?",
+    "greedy": "What input pattern would break a naive greedy rule, and how would you patch it?",
+    "dp_precursor": "What if state has an additional dimension? How would you define dp state cleanly?",
+}

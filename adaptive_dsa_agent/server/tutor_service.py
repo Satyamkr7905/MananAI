@@ -47,6 +47,23 @@ def _solved_list(row: UserLearningState) -> list[str]:
         return []
 
 
+def _confidence_to_unit_scale(self_confidence: int | float | None) -> float | None:
+    if self_confidence is None:
+        return None
+    raw = float(self_confidence)
+    if raw > 1.0:
+        raw = raw / 100.0
+    return max(0.0, min(1.0, raw))
+
+
+def _calibration_band(error: float) -> str:
+    if error <= 0.15:
+        return "well_calibrated"
+    if error <= 0.35:
+        return "slightly_miscalibrated"
+    return "poorly_calibrated"
+
+
 class TutorRuntime:
     # process-global bank + selector (read-only). hints are stateless per request.
 
@@ -114,6 +131,7 @@ class TutorRuntime:
         question_id: str,
         answer: str,
         hints_used: int,
+        self_confidence: int | None = None,
     ) -> dict[str, Any]:
         row = db.get(UserLearningState, user.id)
         if row is None:
@@ -140,6 +158,7 @@ class TutorRuntime:
         t0 = time.perf_counter()
         eval_result = self.evaluator.evaluate(q, answer or "")
         elapsed = time.perf_counter() - t0
+        confidence_norm = _confidence_to_unit_scale(self_confidence)
 
         sm.register_attempt(
             question=q,
@@ -147,6 +166,7 @@ class TutorRuntime:
             evaluator_result=eval_result,
             hints_used=int(hints_used),
             elapsed_seconds=elapsed,
+            self_confidence=confidence_norm,
         )
         decision = self.engine.decide(
             state=sm.state,
@@ -175,6 +195,12 @@ class TutorRuntime:
                         "error_type": eval_result.get("error_type"),
                         "hintsUsed": int(hints_used),
                         "attemptsOnQuestion": attempts_on_q,
+                        "selfConfidence": confidence_norm,
+                        "calibrationError": (
+                            abs(confidence_norm - float(eval_result.get("score", 0.0)))
+                            if confidence_norm is not None
+                            else None
+                        ),
                     }
                 ),
             )
@@ -182,7 +208,26 @@ class TutorRuntime:
         db.add(row)
         db.commit()
 
-        return {**eval_result, "questionId": question_id}
+        calibration: dict[str, Any] | None = None
+        if confidence_norm is not None:
+            calib_err = abs(confidence_norm - float(eval_result.get("score", 0.0)))
+            calibration = {
+                "selfConfidence": round(confidence_norm, 3),
+                "error": round(calib_err, 3),
+                "band": _calibration_band(calib_err),
+                "runningMae": round(float(sm.state.calibration_mae), 3),
+            }
+
+        counterfactual: str | None = None
+        if float(eval_result.get("score", 0.0)) >= float(self.evaluator.close_threshold):
+            counterfactual = self.hinter.generate_counterfactual(q, eval_result)
+
+        return {
+            **eval_result,
+            "questionId": question_id,
+            "calibration": calibration,
+            "counterfactual": counterfactual,
+        }
 
     def hint(
         self,
