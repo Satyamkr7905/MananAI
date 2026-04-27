@@ -6,6 +6,13 @@ It picks the next problem based on what you already know, gives hints only when 
 
 ---
 
+## Live deployment
+
+- Frontend (Vercel): https://dsabynova.vercel.app/
+- Backend (Render): set `NEXT_PUBLIC_API_BASE` to your Render API URL in frontend env (`https://<your-render-service>.onrender.com`)
+
+---
+
 ## What's inside
 
 This repo is two apps that work together:
@@ -15,7 +22,7 @@ This repo is two apps that work together:
 | `adaptive_dsa_agent/` | The brain + API | Python, FastAPI, PostgreSQL, Gemini (optional) |
 | `adaptive_dsa_frontend/` | The website you use | Next.js, React, Tailwind |
 
-They talk to each other over HTTP. The API runs on `http://localhost:8000`, the site runs on `http://localhost:3000`.
+They talk to each other over HTTP. For local development, the API runs on `http://localhost:8000`, and the site runs on `http://localhost:3000`.
 
 ---
 
