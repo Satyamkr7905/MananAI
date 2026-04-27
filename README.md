@@ -9,7 +9,7 @@ It picks the next problem based on what you already know, gives hints only when 
 ## Live deployment
 
 - Frontend (Vercel): https://dsabynova.vercel.app/
-- Backend (Render): set `NEXT_PUBLIC_API_BASE` to your Render API URL in frontend env (`https://<your-render-service>.onrender.com`)
+- Backend (Render): https://novaai-2wyy.onrender.com/
 
 ---
 
