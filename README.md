@@ -3,12 +3,13 @@
 A friendly AI coach that teaches **Data Structures and Algorithms** at your pace.
 
 It picks the next problem based on what you already know, gives hints only when you need them, and remembers the mistakes you tend to make — so you actually get better, instead of just grinding questions.
+  
 
 ---
 
 ## Live deployment
 
-- Frontend (Vercel): https://dsabynova.vercel.app/
+- Frontend (Vercel): https://mananai01.vercel.app/
 - Backend (Render): https://novaai-2wyy.onrender.com/
 
 ---
@@ -22,7 +23,7 @@ This repo is two apps that work together:
 | `adaptive_dsa_agent/` | The brain + API | Python, FastAPI, PostgreSQL, Gemini (optional) |
 | `adaptive_dsa_frontend/` | The website you use | Next.js, React, Tailwind |
 
-They talk to each other over HTTP. For local development, the API runs on `http://localhost:8000`, and the site runs on `http://localhost:3000`.
+They talk to each other over HTTP. For local development, the API runs on `https://novaai-2wyy.onrender.com/`, and the site runs on `https://mananai01.vercel.app/`.
 
 ---
 
