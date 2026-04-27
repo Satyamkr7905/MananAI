@@ -51,8 +51,8 @@ export default function App({ Component, pageProps }) {
     <AuthProvider>
       <MascotProvider>
       <Head>
-        <title>DSA By NOVA</title>
-        <meta name="description" content="DSA By NOVA — an adaptive, decision-driven tutor for Data Structures & Algorithms." />
+        <title>MananAI</title>
+        <meta name="description" content="MananAI — an adaptive, decision-driven tutor for Data Structures & Algorithms." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.svg" />
       </Head>

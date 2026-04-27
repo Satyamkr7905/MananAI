@@ -1,4 +1,4 @@
-# DSA By NOVA — full stack: PostgreSQL + FastAPI backend + Next.js frontend.
+# MananAI — full stack: PostgreSQL + FastAPI backend + Next.js frontend.
 #
 # usage (from this directory):
 #   docker compose up --build

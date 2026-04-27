@@ -1,0 +1,4 @@
+# Graphify cache and local generated graph output.
+graphify-out/
+/graphify-out/
+graphify-out/**

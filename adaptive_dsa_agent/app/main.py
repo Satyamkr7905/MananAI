@@ -1,4 +1,4 @@
-# DSA By NOVA — CLI entry point.
+# MananAI — CLI entry point.
 #
 # main flow:
 #  1. load user state
@@ -45,7 +45,7 @@ log = get_logger(__name__)
 
 BANNER = r"""
 ========================================================
-                  DSA By NOVA  -  CLI
+                  MananAI  -  CLI
    Type 'help' for commands, 'quit' to save & exit
 ========================================================
 """
@@ -301,7 +301,7 @@ class TutorCLI:
 # ---------------------------------------------------------------------------
 
 def _parse_args(argv: list[str]) -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="DSA By NOVA — CLI tutor")
+    p = argparse.ArgumentParser(description="MananAI — CLI tutor")
     p.add_argument("--user", default="default", help="User id to load/save progress under.")
     p.add_argument("--topic", default=None, help="Start on this topic (e.g. 'arrays', 'dp').")
     return p.parse_args(argv)

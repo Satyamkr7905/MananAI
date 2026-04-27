@@ -1,6 +1,6 @@
-# DSA By NOVA — Backend (MVP)
+# MananAI — Backend (MVP)
 
-The Python/FastAPI backend for **DSA By NOVA** — an intelligent, **decision-driven** tutor for Data Structures & Algorithms.
+The Python/FastAPI backend for **MananAI** — an intelligent, **decision-driven** tutor for Data Structures & Algorithms.
 
 Unlike a chatbot, this system:
 

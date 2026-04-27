@@ -1,6 +1,6 @@
-# DSA By NOVA — Frontend
+# MananAI — Frontend
 
-Next.js frontend for **DSA By NOVA**. Talks to the FastAPI backend.
+Next.js frontend for **MananAI**. Talks to the FastAPI backend.
 
 **Stack**: Next.js 14 · React 18 · Tailwind CSS · Recharts · lucide-react · react-hot-toast
 

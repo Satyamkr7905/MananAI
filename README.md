@@ -1,4 +1,4 @@
-# DSA By NOVA
+# MananAI
 
 A friendly AI coach that teaches **Data Structures and Algorithms** at your pace.
 
@@ -183,7 +183,7 @@ Should show `33 passed`.
 ## Project layout
 
 ```
-NovaAi/
+MananAI/
 ├── docker-compose.yml          # one-shot "full stack" for Docker users
 ├── README.md                   # this file
 │

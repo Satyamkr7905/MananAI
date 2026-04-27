@@ -14,7 +14,7 @@ export default function AuthShell({ children }) {
           <div className="h-9 w-9 rounded-xl bg-white/15 backdrop-blur grid place-items-center ring-1 ring-white/20">
             <Brain className="h-5 w-5" strokeWidth={2.25} />
           </div>
-          <span className="font-semibold tracking-tight">DSA By NOVA</span>
+          <span className="font-semibold tracking-tight">MananAI</span>
         </div>
 
         <div className="relative z-10">
@@ -44,7 +44,7 @@ export default function AuthShell({ children }) {
         <div className="absolute top-20 -left-10 h-48 w-48 rounded-full bg-white/5 blur-3xl" />
 
         <div className="relative text-xs text-brand-100/70">
-          © {new Date().getFullYear()} DSA By NOVA
+          © {new Date().getFullYear()} MananAI
         </div>
       </aside>
 
