@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { RefreshCw, ArrowRight, PartyPopper, BookOpen } from "lucide-react";
+import { RefreshCw, ArrowRight, PartyPopper, BookOpen, Code2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import toast from "react-hot-toast";
 
 import AppLayout from "@/components/AppLayout";
@@ -23,6 +24,7 @@ import {
 // mastered IDs are excluded from future rotations so the tutor don't waste
 // your time on problems you've already nailed clean.
 export default function Practice() {
+  const router = useRouter();
   // ---- filters ----
   const [topics, setTopics] = useState([]);
   const [selectedTopic, setSelectedTopic] = useState("all");
@@ -143,6 +145,20 @@ export default function Practice() {
     setSelectedDifficulty("all");
   };
 
+  // Stash the question on sessionStorage so /sandbox can render the prompt
+  // beside the code editor without an extra API round-trip.
+  const onOpenSandbox = () => {
+    if (!question) return;
+    try {
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("adt.sandbox.question", JSON.stringify(question));
+      }
+    } catch {
+      /* sessionStorage may be disabled — non-fatal */
+    }
+    router.push(`/sandbox?questionId=${encodeURIComponent(question.id)}&from=practice`);
+  };
+
   return (
     <AppLayout
       title="Practice"
@@ -158,10 +174,16 @@ export default function Practice() {
             Skip
           </button>
           {feedback?.correct && !exhausted && (
-            <button onClick={loadNextQuestion} className="btn-primary text-sm">
-              Next question
-              <ArrowRight className="h-4 w-4" />
-            </button>
+            <>
+              <button onClick={onOpenSandbox} className="btn-ghost text-sm">
+                <Code2 className="h-4 w-4" />
+                Open in Sandbox
+              </button>
+              <button onClick={loadNextQuestion} className="btn-primary text-sm">
+                Next question
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </>
           )}
         </>
       }

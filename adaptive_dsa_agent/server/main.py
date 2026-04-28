@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse, Response
 
 from .auth_routes import router as auth_router
 from .database import init_db
+from .sandbox_routes import router as sandbox_router
 from .settings import cors_list, get_api_settings
 from .tutor_routes import router as tutor_router
 
@@ -67,6 +68,7 @@ async def http_message_handler(_request, exc: HTTPException):
 
 app.include_router(auth_router)
 app.include_router(tutor_router)
+app.include_router(sandbox_router)
 
 
 @app.get("/health")
