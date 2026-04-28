@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, RefreshCw, Timer } from "lucide-react";
+import { ArrowRight, Code2, RefreshCw, Timer } from "lucide-react";
+import { useRouter } from "next/router";
 import toast from "react-hot-toast";
 
 import AppLayout from "@/components/AppLayout";
@@ -19,6 +20,7 @@ function formatSeconds(totalSeconds) {
 }
 
 export default function InterviewPage() {
+  const router = useRouter();
   const [question, setQuestion] = useState(null);
   const [loadingQuestion, setLoadingQuestion] = useState(true);
   const [answer, setAnswer] = useState("");
@@ -75,6 +77,21 @@ export default function InterviewPage() {
     return "text-rose-600 dark:text-rose-300";
   }, [elapsedSeconds]);
 
+  // Hand off the just-cleared question to /sandbox for a real run-and-execute
+  // session. We stash it on sessionStorage instead of the URL so the prompt
+  // body — which can be quite long — doesn't have to be encoded in the path.
+  const onOpenSandbox = () => {
+    if (!question) return;
+    try {
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("adt.sandbox.question", JSON.stringify(question));
+      }
+    } catch {
+      /* sessionStorage may be disabled — non-fatal */
+    }
+    router.push(`/sandbox?questionId=${encodeURIComponent(question.id)}&from=interview`);
+  };
+
   const onSubmit = async () => {
     if (!question || !answer.trim()) return;
     setSubmitting(true);
@@ -111,10 +128,16 @@ export default function InterviewPage() {
             New round
           </button>
           {feedback?.correct && !exhausted && (
-            <button onClick={loadNextQuestion} className="btn-primary text-sm">
-              Next round
-              <ArrowRight className="h-4 w-4" />
-            </button>
+            <>
+              <button onClick={onOpenSandbox} className="btn-ghost text-sm">
+                <Code2 className="h-4 w-4" />
+                Open in Sandbox
+              </button>
+              <button onClick={loadNextQuestion} className="btn-primary text-sm">
+                Next round
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </>
           )}
         </>
       }

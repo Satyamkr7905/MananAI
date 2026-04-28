@@ -133,3 +133,17 @@ export const getHint = ({ questionId, level, mode }) => {
   if (mode) params.set("mode", String(mode));
   return request(`/questions/${questionId}/hint?${params.toString()}`);
 };
+
+// ------------------------------ sandbox ------------------------------
+
+// list of supported languages (id, label, version, starter template).
+export const getSandboxLanguages = () => request("/sandbox/languages");
+
+// run user-written source in the chosen language. Backend proxies to Piston
+// so we never execute untrusted code in our own process.
+export const runCode = ({ language, source, stdin }) =>
+  request("/sandbox/run", {
+    method: "POST",
+    body: { language, source, stdin: stdin || "" },
+    timeoutMs: 30_000,
+  });

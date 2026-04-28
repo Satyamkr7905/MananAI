@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { BarChart3, BriefcaseBusiness, GraduationCap, History, LayoutDashboard, X } from "lucide-react";
+import { BarChart3, BriefcaseBusiness, Code2, GraduationCap, History, LayoutDashboard, X } from "lucide-react";
 import { cn } from "@/utils/cn";
 
 const NAV_SECTIONS = [
@@ -17,6 +17,12 @@ const NAV_SECTIONS = [
     title: "Interview",
     items: [
       { href: "/interview", label: "Interview Mode", icon: BriefcaseBusiness },
+    ],
+  },
+  {
+    title: "Code",
+    items: [
+      { href: "/sandbox", label: "Sandbox", icon: Code2 },
     ],
   },
 ];
