@@ -4,7 +4,6 @@ import Head from "next/head";
 import dynamic from "next/dynamic";
 import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
-import { useEffect } from "react";
 
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
