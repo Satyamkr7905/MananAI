@@ -4,6 +4,7 @@ import Head from "next/head";
 import dynamic from "next/dynamic";
 import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import { useEffect } from "react";
 
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -28,6 +29,13 @@ const LazyGoogleOAuthProvider = dynamic(
 );
 
 export default function App({ Component, pageProps }) {
+  useEffect(() => {
+    const base = (process.env.NEXT_PUBLIC_API_BASE || "").trim();
+    if (!base) return;
+    fetch(`${base}/health`, { method: "GET" }).catch(() => {
+      // silent: warm-up only
+    });
+  }, []);
   // fire a cheap no-auth ping on mount so Render's free-tier dyno starts
   // waking up while the user reads the login page. without this, the first
   // real API call pays the full cold-start (~20-40s) and the site feels broken.

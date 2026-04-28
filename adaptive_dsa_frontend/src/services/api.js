@@ -16,7 +16,8 @@ const isNetworkError = (err) =>
   err?.name === "TypeError" ||
   /failed to fetch|networkerror|load failed|abort/i.test(String(err?.message || ""));
 
-const request = async (path, { method = "GET", body, headers, timeoutMs = 15_000 } = {}) => {
+const request = async (path, { method = "GET", body, headers, timeoutMs = 60_000 } = {}) => {
+  
   if (!API_BASE) {
     const err = new Error(
       "NEXT_PUBLIC_API_BASE is not set. Point it to your FastAPI server (e.g. http://127.0.0.1:8000).",
@@ -24,6 +25,11 @@ const request = async (path, { method = "GET", body, headers, timeoutMs = 15_000
     err.status = 0;
     throw err;
   }
+
+  let attempt =0;
+  const maxRetries =1 ;
+
+  while(true){
 
   const ac = typeof AbortController !== "undefined" ? new AbortController() : null;
   const to = ac ? setTimeout(() => ac.abort(), timeoutMs) : null;
@@ -48,6 +54,7 @@ const request = async (path, { method = "GET", body, headers, timeoutMs = 15_000
               : null;
         msg = data?.message || detailText || msg;
       } catch {
+        
         /* ignore body parse errors */
       }
       const err = new Error(msg);
@@ -56,7 +63,7 @@ const request = async (path, { method = "GET", body, headers, timeoutMs = 15_000
     }
     return res.json();
   } catch (err) {
-    if (isNetworkError(err)) {
+    if (isNetworkError(err) || timedout) {
       const nicer = new Error(
         `Can't reach the API at ${API_BASE}. Make sure the FastAPI server is up and CORS_ORIGINS includes this site.`,
       );
@@ -67,6 +74,7 @@ const request = async (path, { method = "GET", body, headers, timeoutMs = 15_000
     throw err;
   } finally {
     if (to) clearTimeout(to);
+  }
   }
 };
 

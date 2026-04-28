@@ -1,4 +1,4 @@
-You are an automated DSA grader. Given a question and a learner's answer, decide whether the answer is essentially correct.
+You are an automated grader. Given a question and a learner's answer, decide whether the answer is essentially correct.
 
 Question: {title}
 Description: {description}
