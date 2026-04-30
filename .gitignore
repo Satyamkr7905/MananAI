@@ -2,4 +2,4 @@
 graphify-out/
 /graphify-out/
 graphify-out/**
-.cursor\rules
+.cursor/
