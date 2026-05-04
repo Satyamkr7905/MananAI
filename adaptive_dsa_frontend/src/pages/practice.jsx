@@ -116,6 +116,13 @@ export default function Practice() {
         } else {
           toast.success("Correct! Recorded in your history.");
         }
+
+        // Logic accepted — flip them straight into the sandbox so they can
+        // turn the approach into runnable code for the same question. Tiny
+        // delay lets the success toast register first.
+        setTimeout(() => {
+          openSandboxForQuestion(question);
+        }, 900);
       }
     } catch (err) {
       toast.error(err?.message || "Could not submit your answer.");
@@ -146,18 +153,23 @@ export default function Practice() {
   };
 
   // Stash the question on sessionStorage so /sandbox can render the prompt
-  // beside the code editor without an extra API round-trip.
-  const onOpenSandbox = () => {
-    if (!question) return;
+  // beside the code editor without an extra API round-trip. We accept an
+  // explicit `q` so onSubmit can pass the still-current question without
+  // relying on closure timing.
+  const openSandboxForQuestion = (q) => {
+    const target = q || question;
+    if (!target) return;
     try {
       if (typeof window !== "undefined") {
-        window.sessionStorage.setItem("adt.sandbox.question", JSON.stringify(question));
+        window.sessionStorage.setItem("adt.sandbox.question", JSON.stringify(target));
       }
     } catch {
       /* sessionStorage may be disabled — non-fatal */
     }
-    router.push(`/sandbox?questionId=${encodeURIComponent(question.id)}&from=practice`);
+    router.push(`/sandbox?questionId=${encodeURIComponent(target.id)}&from=practice`);
   };
+
+  const onOpenSandbox = () => openSandboxForQuestion(question);
 
   return (
     <AppLayout

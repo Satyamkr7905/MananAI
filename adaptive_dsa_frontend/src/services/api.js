@@ -108,6 +108,10 @@ export const getStats = () => request("/user/stats");
 
 export const getTopics = () => request("/topics");
 
+// catalogue of every question (id/title/topic/difficulty/tags only — the
+// model solution is stripped server-side). Used by the sandbox picker.
+export const getAllQuestions = () => request("/questions");
+
 export const getAnalytics = () => request("/analytics");
 
 export const getUserProgress = () => request("/user/progress");

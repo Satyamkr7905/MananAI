@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { ArrowLeft, Code2, Terminal } from "lucide-react";
+import { ArrowLeft, BookOpen, Code2, Search, Terminal, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 import AppLayout from "@/components/AppLayout";
 import Loader from "@/components/Loader";
 import QuestionCard from "@/components/QuestionCard";
 import SandboxEditor from "@/components/SandboxEditor";
-import { getSandboxLanguages, runCode } from "@/services/api";
+import { getAllQuestions, getSandboxLanguages, runCode } from "@/services/api";
 
 // Sandbox page — reached after the user's logic is judged correct on
 // Practice / Interview. We pass the question through sessionStorage so the
@@ -29,6 +29,14 @@ export default function Sandbox() {
   const [result, setResult] = useState(null);
   const [question, setQuestion] = useState(null);
   const [loadingLangs, setLoadingLangs] = useState(true);
+
+  // question picker — lazily loads the catalogue the first time it's opened.
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [bank, setBank] = useState([]);
+  const [bankLoading, setBankLoading] = useState(false);
+  const [bankLoaded, setBankLoaded] = useState(false);
+  const [pickerQuery, setPickerQuery] = useState("");
+  const pickerRef = useRef(null);
 
   // Pull whichever question the user just solved out of sessionStorage so we
   // can show the prompt alongside the code area. If they reached /sandbox
@@ -104,6 +112,87 @@ export default function Sandbox() {
     }
   }, [source, currentLang]);
 
+  // Lazy-load the question catalogue the first time the user opens the
+  // picker, then keep it cached for the rest of the session.
+  const ensureBankLoaded = useCallback(async () => {
+    if (bankLoaded || bankLoading) return;
+    setBankLoading(true);
+    try {
+      const list = await getAllQuestions();
+      setBank(Array.isArray(list) ? list : []);
+      setBankLoaded(true);
+    } catch (err) {
+      toast.error(err?.message || "Could not load question catalogue.");
+    } finally {
+      setBankLoading(false);
+    }
+  }, [bankLoaded, bankLoading]);
+
+  const togglePicker = () => {
+    setPickerOpen((open) => {
+      const next = !open;
+      if (next) ensureBankLoaded();
+      else setPickerQuery("");
+      return next;
+    });
+  };
+
+  // Close the picker on outside click and on Escape so it doesn't trap focus.
+  useEffect(() => {
+    if (!pickerOpen) return undefined;
+    const onDocClick = (e) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
+        setPickerOpen(false);
+        setPickerQuery("");
+      }
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        setPickerOpen(false);
+        setPickerQuery("");
+      }
+    };
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [pickerOpen]);
+
+  const filteredBank = useMemo(() => {
+    const q = pickerQuery.trim().toLowerCase();
+    if (!q) return bank;
+    return bank.filter((item) => {
+      const haystack = [
+        item.title,
+        item.id,
+        item.topic,
+        ...(Array.isArray(item.tags) ? item.tags : []),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [bank, pickerQuery]);
+
+  const selectQuestion = (q) => {
+    if (!q) return;
+    setQuestion(q);
+    setResult(null);
+    try {
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(q));
+      }
+    } catch {
+      /* sessionStorage may be disabled — non-fatal */
+    }
+    setPickerOpen(false);
+    setPickerQuery("");
+    toast.success(`Loaded: ${q.title || q.id}`);
+  };
+
   const onRun = useCallback(async () => {
     if (!currentLang || !source.trim()) return;
     setRunning(true);
@@ -136,10 +225,38 @@ export default function Sandbox() {
           : "Pick a language, write code, and run it. Backed by Piston for safe execution."
       }
       actions={
-        <Link href={backHref} className="btn-ghost text-sm">
-          <ArrowLeft className="h-4 w-4" />
-          {from === "interview" ? "Back to interview" : "Back to practice"}
-        </Link>
+        <div className="flex items-center gap-2">
+          <div className="relative" ref={pickerRef}>
+            <button
+              type="button"
+              onClick={togglePicker}
+              className="btn-ghost text-sm"
+              aria-haspopup="listbox"
+              aria-expanded={pickerOpen}
+            >
+              <BookOpen className="h-4 w-4" />
+              {question ? "Change question" : "Pick question"}
+            </button>
+            {pickerOpen && (
+              <QuestionPicker
+                loading={bankLoading}
+                items={filteredBank}
+                totalCount={bank.length}
+                query={pickerQuery}
+                onQueryChange={setPickerQuery}
+                onSelect={selectQuestion}
+                onClose={() => {
+                  setPickerOpen(false);
+                  setPickerQuery("");
+                }}
+              />
+            )}
+          </div>
+          <Link href={backHref} className="btn-ghost text-sm">
+            <ArrowLeft className="h-4 w-4" />
+            {from === "interview" ? "Back to interview" : "Back to practice"}
+          </Link>
+        </div>
       }
     >
       <div className="flex flex-col gap-6">
@@ -269,6 +386,106 @@ function OutputPanel({ running, result }) {
           {stderr && <OutputBlock label="stderr" tone="warn" text={stderr} />}
         </div>
       )}
+    </div>
+  );
+}
+
+const DIFF_LABELS = ["", "Easy", "Easy-Medium", "Medium", "Hard", "Expert"];
+
+function QuestionPicker({
+  loading,
+  items,
+  totalCount,
+  query,
+  onQueryChange,
+  onSelect,
+  onClose,
+}) {
+  return (
+    <div
+      className="
+        absolute right-0 mt-2 w-[min(28rem,90vw)] z-30
+        rounded-2xl bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700
+        shadow-xl overflow-hidden animate-fade-in
+      "
+      role="dialog"
+      aria-label="Pick a question"
+    >
+      <div className="flex items-center gap-2 p-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <input
+            value={query}
+            onChange={(e) => onQueryChange(e.target.value)}
+            autoFocus
+            placeholder="Search by title, topic, or tag…"
+            className="
+              w-full pl-8 pr-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800
+              ring-1 ring-slate-200 dark:ring-slate-700 text-sm
+              text-slate-800 dark:text-slate-100
+              placeholder:text-slate-400 dark:placeholder:text-slate-500
+              focus:outline-none focus:ring-2 focus:ring-brand-500
+            "
+          />
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="btn-subtle !p-2"
+          aria-label="Close picker"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="max-h-[60vh] overflow-y-auto">
+        {loading ? (
+          <div className="p-6 grid place-items-center">
+            <Loader label="Loading questions..." />
+          </div>
+        ) : items.length === 0 ? (
+          <div className="p-6 text-sm text-slate-500 dark:text-slate-400">
+            {totalCount === 0
+              ? "No questions available."
+              : "No questions match that search."}
+          </div>
+        ) : (
+          <ul className="py-1">
+            {items.map((q) => (
+              <li key={q.id}>
+                <button
+                  type="button"
+                  onClick={() => onSelect(q)}
+                  className="
+                    w-full text-left px-4 py-3 flex items-start gap-3
+                    hover:bg-slate-50 dark:hover:bg-slate-800/60
+                    focus:outline-none focus:bg-slate-50 dark:focus:bg-slate-800/60
+                  "
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                        {q.title || q.id}
+                      </span>
+                      {typeof q.difficulty === "number" && (
+                        <span className="badge-neutral text-[10px]">
+                          {DIFF_LABELS[q.difficulty] || `lvl ${q.difficulty}`}
+                        </span>
+                      )}
+                      {q.topic && (
+                        <span className="badge-brand text-[10px] capitalize">{q.topic}</span>
+                      )}
+                    </div>
+                    <div className="mt-0.5 text-xs text-slate-400 dark:text-slate-500 font-mono">
+                      {q.id}
+                    </div>
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

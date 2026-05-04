@@ -80,17 +80,22 @@ export default function InterviewPage() {
   // Hand off the just-cleared question to /sandbox for a real run-and-execute
   // session. We stash it on sessionStorage instead of the URL so the prompt
   // body — which can be quite long — doesn't have to be encoded in the path.
-  const onOpenSandbox = () => {
-    if (!question) return;
+  // Accepts an explicit `q` so the auto-redirect path can pass the question
+  // directly without leaning on closure timing inside setTimeout.
+  const openSandboxForQuestion = (q) => {
+    const target = q || question;
+    if (!target) return;
     try {
       if (typeof window !== "undefined") {
-        window.sessionStorage.setItem("adt.sandbox.question", JSON.stringify(question));
+        window.sessionStorage.setItem("adt.sandbox.question", JSON.stringify(target));
       }
     } catch {
       /* sessionStorage may be disabled — non-fatal */
     }
-    router.push(`/sandbox?questionId=${encodeURIComponent(question.id)}&from=interview`);
+    router.push(`/sandbox?questionId=${encodeURIComponent(target.id)}&from=interview`);
   };
+
+  const onOpenSandbox = () => openSandboxForQuestion(question);
 
   const onSubmit = async () => {
     if (!question || !answer.trim()) return;
@@ -105,7 +110,14 @@ export default function InterviewPage() {
         mode: "interview",
       });
       setFeedback(res);
-      if (res.correct) toast.success("Interview round cleared.");
+      if (res.correct) {
+        toast.success("Interview round cleared.");
+        // Round cleared on logic — push them into sandbox to write the
+        // executable version. Short delay so the success toast lands first.
+        setTimeout(() => {
+          openSandboxForQuestion(question);
+        }, 900);
+      }
     } catch (err) {
       toast.error(err?.message || "Could not submit interview answer.");
     } finally {

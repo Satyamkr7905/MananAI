@@ -111,6 +111,20 @@ def topics(user: User = Depends(get_current_user), db: Session = Depends(get_ses
     return get_tutor().topics_for_api(solved_ids=solved_ids)
 
 
+@router.get("/questions")
+def list_questions(user: User = Depends(get_current_user)):
+    # Light catalogue used by the sandbox picker. We strip the model answer
+    # and keyword/approach lists so a curious user can't grep the bank for
+    # solutions through DevTools — the picker only needs id/title/topic/etc.
+    _ = user
+    bank = get_tutor().bank.all()
+    public_keys = {"id", "title", "description", "difficulty", "topic", "tags"}
+    return [
+        {k: v for k, v in q.items() if k in public_keys}
+        for q in bank
+    ]
+
+
 @router.get("/questions/next")
 def next_question(
     topic: str | None = None,
